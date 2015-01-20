@@ -16,6 +16,7 @@ Blackjack.prototype.resetGame = function(){
 	deck_of_cards = new Blackjack();
 	playerTotal = 1;
 	cardSpot = 1;
+	betSpot = 1;
 }
 
 Blackjack.prototype.shuffle = function(){
@@ -109,6 +110,7 @@ Blackjack.prototype.dealCard = function(){
 
 var playerTotal = 1;
 var cardSpot = 1;
+var betSpot = 1;
 
 Blackjack.prototype.tallyHandValue = function(playerNum){
     var playerArraySpot;
@@ -146,14 +148,31 @@ Blackjack.prototype.findNextPlayer = function(currentPlayer){
 Blackjack.prototype.endHand = function(){
     for (var i = 1; i < this.players.length; i++){
         if (this.players[i].handsValue > this.players[0].handsValue && this.players[i].handsValue <= 21 || (this.players[0].handsValue > 21 && this.players[i].handsValue <= 21)){
-            this.players[i].winLoss = "Win";
+            this.players[i].funds += (this.players[i].bet * 2);
         }
         else if (this.players[i].handsValue == this.players[0].handsValue && this.players[i].handsValue <= 21){
-            this.players[i].winLoss = "Push";
+            this.players[i].funds += this.players[i].bet;
         }
         else{
-            this.players[i].winLoss = "Loss";
+            if (this.players[i].funds <= 0){
+                return "You have played your last hand";
+            }
         }
+        this.players[i][i] = [];
+        this.players[i].bet = 0;
+        this.players[i].hasHold = false;
+        this.players[i].handsValue = 0;
+    }
+    this.players[0]["dealer"] = [];
+    this.players[0].handsValue = 0;
+    this.firstDeal = true;
+    betSpot = 1;
+    cardSpot = 1;
+    if (this.totalCards < (this.players.length * 4)){
+        this.topCard = undefined;
+        this.bottomCard = undefined;
+        this.totalCards = 0;
+        this.shuffle();
     }
 }
 
@@ -210,10 +229,37 @@ Blackjack.prototype.addPlayer = function(playerName){
 	playerTotal++;
 }
 
+Blackjack.prototype.placeBet = function(val){
+    if (betSpot >= this.players.length){
+        return "Everyone has placed their bets";
+    }
+    else{
+        if (this.players[betSpot].funds - val >= 0){
+            this.players[betSpot].bet = val;
+            this.players[betSpot].funds -= val; 
+            betSpot++;
+        }
+        else{
+            return "You do not have enough funds available";
+        }    
+    }
+}
+
+Blackjack.prototype.doubleDown = function(){
+    this.players[cardSpot].funds -= this.players[cardSpot].bet;
+    this.players[cardSpot].bet *= 2;
+    var checkCardSpot = cardSpot;
+    this.assignCard();
+    if (checkCardSpot == cardSpot){
+        this.hold();
+    }
+}
+
 function Player(playerNum, playerName){
 	this[playerNum] = [];
 	this.name = playerName;
 	this.hasHold = false;
 	this.handsValue = 0;
-	this.winLoss;
+	this.funds = 100;
+	this.bet = 0;
 }
