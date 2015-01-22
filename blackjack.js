@@ -122,8 +122,17 @@ Blackjack.prototype.tallyHandValue = function(playerNum){
     }
 	var cardCount = this.players[playerArraySpot][playerNum].length;
 	var handValue = 0;
+	var aces = 0;
 	for (var i = 0; i < cardCount; i++){
+		var checkCardType = this.players[playerArraySpot][playerNum][i].faceValue.split(" ");
+		if (checkCardType[0] == "Ace"){
+			aces++;
+		}
 		handValue += Number(this.players[playerArraySpot][playerNum][i].numericalValue);
+	}
+	while (aces > 0 && this.players[playerArraySpot].handsValue > 21){
+		aces--;
+		handValue -= 10;
 	}
 	this.players[playerArraySpot].handsValue = handValue;
 }
@@ -155,7 +164,7 @@ Blackjack.prototype.endHand = function(){
         }
         else{
             if (this.players[i].funds <= 0){
-                return "You have played your last hand";
+                console.log(this.players[i].name + " has played his/her last hand");
             }
         }
         this.players[i][i] = [];
@@ -246,12 +255,17 @@ Blackjack.prototype.placeBet = function(val){
 }
 
 Blackjack.prototype.doubleDown = function(){
-    this.players[cardSpot].funds -= this.players[cardSpot].bet;
-    this.players[cardSpot].bet *= 2;
-    var checkCardSpot = cardSpot;
-    this.assignCard();
-    if (checkCardSpot == cardSpot){
-        this.hold();
+    if (this.players[cardSpot].funds < this.players[cardSpot].bet){
+        return "You dont have enough to double down";
+    }
+    else{
+        this.players[cardSpot].funds -= this.players[cardSpot].bet;
+        this.players[cardSpot].bet *= 2;
+        var checkCardSpot = cardSpot;
+        this.assignCard();
+        if (checkCardSpot == cardSpot){
+            this.hold();
+        }    
     }
 }
 
