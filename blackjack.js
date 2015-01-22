@@ -124,17 +124,16 @@ Blackjack.prototype.tallyHandValue = function(playerNum){
 	var handValue = 0;
 	var aces = 0;
 	for (var i = 0; i < cardCount; i++){
-		var checkCardType = this.players[playerArraySpot][playerNum][i].faceValue.split(" ");
-		if (checkCardType[0] == "Ace"){
+		if (this.players[playerArraySpot][playerNum][i].numericalValue == 11){
 			aces++;
 		}
 		handValue += Number(this.players[playerArraySpot][playerNum][i].numericalValue);
 	}
+	this.players[playerArraySpot].handsValue = handValue;
 	while (aces > 0 && this.players[playerArraySpot].handsValue > 21){
 		aces--;
-		handValue -= 10;
+		this.players[playerArraySpot].handsValue -= 10;
 	}
-	this.players[playerArraySpot].handsValue = handValue;
 }
 
 Blackjack.prototype.findNextPlayer = function(currentPlayer){
@@ -203,6 +202,9 @@ Blackjack.prototype.assignCard = function(){
 		        var z = "dealer";
 		        this.players[0][z].push(this.dealCard());
 		        this.tallyHandValue("dealer");
+		        if (this.players[0].handsValue == 21){
+		            this.endHand();
+		        }
 		    }
 		    else{
 		    this.players[y][y].push(this.dealCard());
