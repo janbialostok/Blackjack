@@ -1,0 +1,27 @@
+{
+  "name": "Blackjack",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+	"start": "nodemon app.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/janbialostok/Blackjack.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/janbialostok/Blackjack/issues"
+  },
+  "homepage": "https://github.com/janbialostok/Blackjack",
+  "dependencies": {
+    "body-parser": "^1.10.2",
+    "express": "^4.11.1",
+    "morgan": "^1.5.1",
+    "socket.io": "^1.3.2",
+    "swig": "^1.4.2"
+  }
+}
