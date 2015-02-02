@@ -156,10 +156,10 @@ Blackjack.prototype.findNextPlayer = function(currentPlayer){
 Blackjack.prototype.endHand = function(){
     for (var i = 1; i < this.players.length; i++){
         if (this.players[i].handsValue > this.players[0].handsValue && this.players[i].handsValue <= 21 || (this.players[0].handsValue > 21 && this.players[i].handsValue <= 21)){
-            this.players[i].funds += (this.players[i].bet * 2);
+            Number(this.players[i].funds) += Number(this.players[i].bet * 2);
         }
         else if (this.players[i].handsValue == this.players[0].handsValue && this.players[i].handsValue <= 21){
-            this.players[i].funds += this.players[i].bet;
+            Number(this.players[i].funds) += Number(this.players[i].bet);
         }
         else{
             if (this.players[i].funds <= 0){
@@ -236,6 +236,9 @@ Blackjack.prototype.hold = function(){
 
 Blackjack.prototype.addPlayer = function(playerName){
 	var playerObject = new Player(this.playerTotal, playerName)
+	playerObject.tablePos.left = (Number(4 - (this.playerTotal / 2)) * 20) + "%";
+	playerObject.tablePos.top = (Number(1 + this.playerTotal) * 5) + "%";
+	console.log(playerObject);
 	this.players.push(playerObject);
 	this.playerTotal++;
 }
@@ -278,6 +281,7 @@ function Player(playerNum, playerName){
 	this.handsValue = 0;
 	this.funds = 100;
 	this.bet = 0;
+	this.tablePos = {};
 }
 
 var newBlackjack = function(){
