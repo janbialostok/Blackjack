@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html class="full">
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Blackjack{% endblock %}</title>
+    <link rel="stylesheet" href="/stylesheets/style.css">
+    <link href="http://netdna.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-1.10.2.min.js"></script>
+  </head>
+  <body style="background: none;">
+    {% block topLevelHeader %}
+      <nav class="navbar navbar-default" style="background-color:#B80434;border: 1px solid black !important;">
+        <div class="container-fluid">
+          <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+              <span class="sr-only">Toggle Navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" style="padding-top:7.5%;"href="/">
+              <img alt="Home" style="height:40px;width:40px;" src="https://cdn4.iconfinder.com/data/icons/hotel-services-2/80/Hotel_service_icons-01-256.png">
+            </a>
+          </div>
+          <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+            <ul class="nav navbar-nav">
+              <li class="nav_btn"><a href="#">Sign In</a></li>
+              <li class="nav_btn"><a href="#">Join</a></li>
+            </ul>
+            <form class="navbar-form navbar-right" action="/table/init" method="POST">
+              <div class="form-group">
+                <label for="create_table" style="color:black !important;">Create New Table</label>
+                <input type="text" id="create_table" name="create_table" class="form-control" placeholder="Enter table name...">
+              </div>
+              <button type="submit" class="btn btn-default">Submit</button>
+            </form>
+          </div>
+        </div>
+      </nav>
+    <div class="container-fluid">
+    {% endblock %}
+    {% block header %}{% endblock %}
+    {% block content %}
+      <main style="color:white;">
+        <h3>{{message}}</h3>
+        {% if showTableList == true %}
+        <ul style='list-style:none;'>
+          {% for table in tables %}
+          {% if table.players.players.length <= 3 %}
+          <li>{{table.name}} currently has {{table.players.players.length}} players <a href="{{table.url_route}}">Join Now</a></li>
+          {% else %}
+          <li>{{table.name}} currently has {{table.players.players.length}} players</li>
+          {% endif %}
+          {% endfor %}
+        </ul>
+        {% endif %}
+      </main>
+    {% endblock %}
+    </div>
+  	<script src="/socket.io/socket.io.js"></script>
+    <script>
+      // load the socket.io library above, the connect to the server
+      // because the socket.io server is being run on the same server as your 
+      // express instance, you can connect() without any additional information
+      var socket = io.connect(); // TIP: .connect with no args does auto-discovery
+
+      // when 'new_tweet' events are fired, take our fileobj object and do something with it
+      socket.on('new_tweet', function (new_tweet) { 
+        var mainDiv = '<div class="media" style="cursor:pointer;" onclick="window.location.href = \'/users/' + new_tweet.name + '/tweets/' + new_tweet.id + '\'"></div>';
+        var avatar = '<div class="media-left"><a href="#"><img class="media-object" src="http://www.jammaplus.co.uk/forum/uploads/5237/Paper-Mario-icon.png"></a></div>';
+        var bodyDiv = '<div class="media-body"><h4 class="media-heading"><a href="/users/' + new_tweet.name + '">' + new_tweet.name + '</a></h4><p>' + new_tweet.text + '</p><a href="#">Re-tweet</a></div>'
+
+        mainDiv.append(avatar);
+        mainDiv.append(bodyDiv);
+        $('#tweet-wrapper').append(mainDiv);
+        // console.log(new_tweet);
+        // alert('Refreshing... check the console...');
+        // add logic to load the new tweet
+      }); 
+    </script>
+  </body>
+</html>

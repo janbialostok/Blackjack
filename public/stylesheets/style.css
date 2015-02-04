@@ -3,6 +3,11 @@
 	border-radius: 25px;
 	height:500px;
 	margin:1% 2.5% 2.5% 2.5%;
+	background: url(http://www.pandorasupholstery.co.uk/products_pictures/Green%20G.JPG) no-repeat center center fixed; 
+	  -webkit-background-size: cover;
+	  -moz-background-size: cover;
+	  -o-background-size: cover;
+	  background-size: cover;
 }
 
 #deck {
@@ -17,4 +22,20 @@
 
 .player {
 	position: relative;
+}
+
+.nav_btn:hover {
+	background-color: rgb(236, 99, 99);
+}
+
+.navbar-default .navbar-nav > li > a {
+	color:black !important;
+}
+
+.full {
+  background: url(http://images7.alphacoders.com/509/509783.jpg) no-repeat center center fixed; 
+  -webkit-background-size: cover;
+  -moz-background-size: cover;
+  -o-background-size: cover;
+  background-size: cover;
 }

@@ -1,4 +1,4 @@
-var deck_of_cards = new Blackjack();
+//var deck_of_cards = new Blackjack();
 function Blackjack(){
 	this.topCard = undefined;
 	this.bottomCard = undefined;
@@ -91,6 +91,7 @@ function Card(val, numVal){
 Blackjack.prototype.dealCard = function(){
 	if (typeof this.topCard == "undefined"){
 		console.log("There are no cards in the deck");
+		this.firstDeal = true;
 		return "There are no cards in the deck";
 	}
 	else{
@@ -156,10 +157,10 @@ Blackjack.prototype.findNextPlayer = function(currentPlayer){
 Blackjack.prototype.endHand = function(){
     for (var i = 1; i < this.players.length; i++){
         if (this.players[i].handsValue > this.players[0].handsValue && this.players[i].handsValue <= 21 || (this.players[0].handsValue > 21 && this.players[i].handsValue <= 21)){
-            Number(this.players[i].funds) += Number(this.players[i].bet * 2);
+            this.players[i].funds += Number(this.players[i].bet * 2);
         }
         else if (this.players[i].handsValue == this.players[0].handsValue && this.players[i].handsValue <= 21){
-            Number(this.players[i].funds) += Number(this.players[i].bet);
+            this.players[i].funds += Number(this.players[i].bet);
         }
         else{
             if (this.players[i].funds <= 0){
@@ -236,8 +237,17 @@ Blackjack.prototype.hold = function(){
 
 Blackjack.prototype.addPlayer = function(playerName){
 	var playerObject = new Player(this.playerTotal, playerName)
-	playerObject.tablePos.left = (Number(4 - (this.playerTotal / 2)) * 20) + "%";
-	playerObject.tablePos.top = (Number(1 + this.playerTotal) * 5) + "%";
+	if (this.playerTotal == 1 || this.playerTotal == 2){
+		playerObject.tablePos.left = (Number(4 - (this.playerTotal / 2)) * (27.5 / this.playerTotal)) + "%";
+		playerObject.tablePos.top = (Number(1 + this.playerTotal) * 5) + "%";
+	}
+	else if (this.playerTotal == 3){
+		playerObject.tablePos.left = "1%";
+		playerObject.tablePos.top = "-32.5%";
+	}
+	else{
+		return "Only 3 players are allowed at this table!";
+	}
 	console.log(playerObject);
 	this.players.push(playerObject);
 	this.playerTotal++;
@@ -264,13 +274,10 @@ Blackjack.prototype.doubleDown = function(){
         return "You dont have enough to double down";
     }
     else{
-        this.players[this.cardSpot].funds -= this.players[this.cardSpot].bet;
+        this.players[this.cardSpot].funds -= Number(this.players[this.cardSpot].bet);
         this.players[this.cardSpot].bet *= 2;
-        var checkCardSpot = this.cardSpot;
         this.assignCard();
-        if (checkCardSpot == this.cardSpot){
-            this.hold();
-        }    
+		this.hold();  
     }
 }
 

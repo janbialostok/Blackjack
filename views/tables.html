@@ -1,0 +1,35 @@
+{% extends "landing.html" %}
+  	{% block header %}
+  		<div id="header" class="row" style='width:100%;height:50px;'>
+	  		{% if showMessage == true %}
+	  		<h4 style="display:inline;float:left;margin-left:5%;color:white;">{{message}}</h4>
+	  		{% endif %}
+  		</div>
+  	{% endblock %}
+  	{% block content %}
+  		<div class='col-sm-4'>
+      </div>
+      <main class='col-sm-4' style='color:white;background:grey;border-radius: 5px;opacity: 0.9;padding-top: 1.5%;'>
+        <form action="/table/submit" method="POST">
+          <div class="form-group">
+            <label for="new_table_name">Table Name</label>
+            <input type="text" class="form-control" name="new_table_name" id="new_table_name" value="{{table_name}}">
+          </div>
+          <div class="form-group">
+            <label for="first_player">Add First Player</label>
+            <input type="text" class="form-control" name="first_player" id="first_player">
+          </div>
+          <div class="form-group">
+            <label for="second_player">Add Second Player</label>
+            <input type="text" class="form-control" name="second_player" id="second_player">
+          </div>
+          <div class="form-group">
+            <label for="third_player">Add Third Player</label>
+            <input type="text" class="form-control" name="third_player" id="third_player">
+          </div>
+          <button class="btn btn-primary" style="margin-bottom:5%;" type="submit">Create Table</button>
+        </form>
+      </main>
+      <div class='col-sm-4'>
+      </div>
+  	{% endblock %}
