@@ -7,25 +7,44 @@
   		</div>
   	{% endblock %}
   	{% block content %}
-  		<div id='table'>
+  		<div id='table col-lg-12'>
   			{% if showDeck == true %}
   				<div id='deck'>
+            <a id='deal_button' class='btn btn-primary' href="/deal/{{table_code}}">Start</a>
   					<h4>{{totalCards}}</h4>
   				</div>
   			{% endif %}
   			{% for player in players %}
   				{% if player.name != "dealer" %}
   				<div class='player' style="margin:{{player.tablePos.top}} auto auto {{player.tablePos.left}};" id='{{player.name}}'>
-  					<h4>{{player.name}}</h4>
-  					<div id='{{player.name}}shand'>
-  						{{player.handsValue}}
-  					</div>
-  					<div id='{{player.name}}sbank'>
-  						{{player.funds}}
-  					</div>
-  					<div id='{{player.name}}sbet'>
-  						{{player.bet}}
-  					</div>
+  					<a href="/deal/{{table_code}}" class='btn btn-xs' style='background-color: red !important;'>Hit</a>
+            <a href="/hold/{{table_code}}" class='btn btn-xs' style='background-color: red !important;'>Hold</a>
+            <a href="/double_down/{{table_code}}" class='btn btn-xs' style='background-color: red !important;'>Double Down</a>
+            <div style='width:50%;'>
+              <h4>{{player.name}}</h4>
+    					<div id='{{player.name}}shand'>
+    						{{player.handsValue}}
+    					</div>
+    					<div id='{{player.name}}sbank'>
+    						{{player.funds}}
+    					</div>
+    					<div id='{{player.name}}sbet'>
+    						{{player.bet}}
+    					</div>
+            </div>
+            <div class='width:50%;'>
+            {% for card in player[player.playerNum] %}
+              <img src="{{card.file}}" style="height:40px;width:30px;">
+            {% endfor %}
+            </div>
+            <form style='' action="/bet" method="POST">
+              <div class='form-group'>
+                <input type="hidden" name="table_code" value="{{table_code}}">
+                <input type="hidden" name="name" value="{{player.name}}">
+                <input type="number" class="form-control" name="bet">
+                <button type="submit" class="btn btn-xs">Bet</button>
+              </div>
+            </form>
   				</div>
   				{% else %}
   				<div class='player' style="margin: -27.5% auto auto 47.5%;"id='{{player.name}}'>
@@ -33,7 +52,12 @@
   					<div id='{{player.name}}shand'>
   						{{player.handsValue}}
   					</div>
-  				</div>
+            <div class='width:50%;'>
+              {% for card in player.dealer %}
+                <img src="{{card.file}}" style="height:40px;width:30px;">
+              {% endfor %}
+            </div>
+          </div>
   				{% endif %}
   			{% endfor %}
   		</div>

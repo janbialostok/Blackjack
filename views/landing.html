@@ -24,8 +24,13 @@
           </div>
           <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
             <ul class="nav navbar-nav">
-              <li class="nav_btn"><a href="#">Sign In</a></li>
-              <li class="nav_btn"><a href="#">Join</a></li>
+              {% if showUser == true %}
+                <li class="nav_btn"><a href="/edit_user">{{user}}</a></li>
+                <li class="nav_btn"><a href="/sign_out/{{user.UID}}">Sign Out</a></li>
+              {% else %}
+                <li class="nav_btn"><a href="/login">Sign In</a></li>
+                <li class="nav_btn"><a href="/new_user">Join</a></li>
+              {% endif %}
             </ul>
             <form class="navbar-form navbar-right" action="/table/init" method="POST">
               <div class="form-group">
@@ -37,7 +42,7 @@
           </div>
         </div>
       </nav>
-    <div class="container-fluid">
+    <div class="container">
     {% endblock %}
     {% block header %}{% endblock %}
     {% block content %}
@@ -46,10 +51,10 @@
         {% if showTableList == true %}
         <ul style='list-style:none;'>
           {% for table in tables %}
-          {% if table.players.players.length <= 3 %}
-          <li>{{table.name}} currently has {{table.players.players.length}} players <a href="{{table.url_route}}">Join Now</a></li>
+          {% if JSON.parse(table.players).players.length <= 3 %}
+          <li>{{table.name}} currently has {{JSON.parse(table.players).players.length}} players <a href="{{table.url_route}}">Join Now</a></li>
           {% else %}
-          <li>{{table.name}} currently has {{table.players.players.length}} players</li>
+          <li>{{table.name}} currently has {{JSON.parse(table.players).players.length}} players</li>
           {% endif %}
           {% endfor %}
         </ul>

@@ -1,13 +1,5 @@
-//AES encoding cant be used because of special characters
-//AES encoding returns and object that contains key iv salt and ciphertext properties
-//new_table.table_code = aes.encrypt(new_table.name, new_table.name);
-//console.log(aes.decrypt(new_table.table_code, new_table.name));
-/*Example of a encryption and decryption of a sample password/passphrase
-var encrypted = aes.encrypt("Message", "Secret Passphrase");
-console.log(encrypted);
-var decrypted = aes.decrypt(encrypted, "Secret Passphrase");
-console.log(decrypted.toString(crypto.enc.Utf8));*/
-
+var passport = require('passport');
+var LocalStrategy = require('passport-local').Strategy;
 var aes = require("crypto-js/aes");
 var SHA256 = require("crypto-js/sha256");
 var crypto = require("crypto-js");
@@ -17,32 +9,79 @@ var User = require("../models").User;
 module.exports = function(app, io){
 
 	var deck_of_cards = deck.Blackjack();
-	// app.get('/', function(req, res){
-	// 	console.log(deck_of_cards);
-	// 	res.render('index', { totalCards: deck_of_cards.totalCards, showDeck: true });
-	// });
 	
-	app.get('/', function(req, res){
-		Table.find().exec(function(err, tables){
-			if (!err && tables.length != 0){
-				res.render('landing', { message: "Available Tables", tables: tables, showTableList: true });		
-			}
-			else{
-				res.render('landing', { message: "There are no available tables, start one above" });
-			}
+	app.get('/new_user', function(req, res){
+		res.render('new_user', { message: "Thanks for Joining Blackjack", showMessage: true });
+	});
+
+	app.post('/new_user', function(req, res){
+		var new_user = new User({ name: req.body.first_name, 
+			UID: req.body.new_username,
+			username: req.body.new_username, 
+			bank: 100, 
+			password: req.body.new_password,
+			passphrase: req.body.new_passphrase
+		});
+		new_user.save(function(err, user){
+			res.render('edit_user', { userObj: user, message: "Edit Profile", showMessage: true, showUser: true, user: user.username });
 		});
 	});
 
+	app.get('/edit_user', function(req, res){
+		User.findOne({ UID: req.session.passport.user }, function(err, user){
+			res.render('edit_user', { userObj: user, message: "Edit Profile", showMessage: true, showUser: true, user: user.username });
+		});
+	});
+
+	app.post('/login', passport.authenticate('local', { successRedirect: '/', failureRedirect: '/login' }));
+
+	app.get('/login', function(req,res) {
+		res.render('sign_in', { message: "Sign In", showMessage: true, });
+	});
+
+	app.get('/', function(req, res){
+		if (req.session.passport.user){
+			User.findOne({ UID: req.session.passport.user }, function(err, user){
+				Table.find().exec(function(err, tables){
+					if (!err && tables.length != 0){
+						res.render('landing', { message: "Available Tables", tables: tables,  showTableList: true, showUser: true, user: user.username });		
+					}
+					else{
+						res.render('landing', { message: "There are no available tables, start one above", showUser: true, user: user.username });
+					}
+				});
+			});
+		}
+		else{
+			Table.find().exec(function(err, tables){
+				if (!err && tables.length != 0){
+					res.render('landing', { message: "Available Tables", tables: tables,  showTableList: true });		
+				}
+				else{
+					res.render('landing', { message: "There are no available tables, start one above" });
+				}
+			});
+		}
+	});
+
 	app.post('/table/init', function(req, res){
-		if (req.body.create_table == null || req.body.create_table == ""){
+		if (req.body.create_table == undefined || req.body.create_table == ""){
 			res.redirect('/');
 		}
 		else{
-			res.render('tables', { table_name: req.body.create_table, message: "Create New Table" });
+			if (req.session.passport.user){
+				User.findOne({ UID: req.session.passport.user }, function(err, user){
+					res.render('tables', { table_name: req.body.create_table, message: "Create New Table", showMessage: true, showUser: true, user: user.username });
+				});
+			}
+			else{
+				res.render('tables', { table_name: req.body.create_table, message: "Create New Table", showMessage: true });
+			}
 		}
 	});
 
 	app.post('/table/submit', function(req, res){
+		deck_of_cards = deck.Blackjack();
 		deck_of_cards.shuffle();
 		if (req.body.first_player.trim() != undefined && req.body.first_player.trim() != ""){
 			deck_of_cards.addPlayer(req.body.first_player);
@@ -54,64 +93,279 @@ module.exports = function(app, io){
 			deck_of_cards.addPlayer(req.body.third_player);
 		}
 		var new_table;
-		new_table = new Table({name: req.body.new_table_name,  players: deck_of_cards });
-		new_table.table_code = SHA256(new_table.name);
-		new_table.url = new_table.name.replace(/[\W\s]/g, '_');
+		var full_route;
+		new_table = new Table({ name: req.body.new_table_name,  players: JSON.stringify(deck_of_cards) });
+		new_table.url = new_table.name.replace(/[\W\s]/g, '_');;
 		new_table.save(function(err, table){
-			res.redirect(table.url_route);	
+			if (!err) {
+				res.redirect(table.url_route);
+			}
+			else{
+				res.send(err);
+			}
 		});
+
 	});
 
 	app.get('/games/:table_code/:url', function(req, res){
-		Table.findOne({ table_code: req.params.table_code, url: req.params.url }).exec(function(err, t){
+		Table.findOne({ _id: req.params.table_code, url: req.params.url }).exec(function(err, t){
 			if (!err){
-				res.render('index', { totalCards: t.players.totalCards, showDeck: true, players: t.players.players, message: "Welcome to table " + t.name });
+				var objDeck = JSON.parse(t.players);
+				if (objDeck.players.length == 2){
+					res.render('one_player', { totalCards: objDeck.totalCards, 
+						showDeck: true, 
+						players: objDeck.players, 
+						message: "Welcome to table " + t.name, 
+						table_code: t._id.toString(), 
+						showMessage: true,
+						dealer: objDeck.players[0],
+						first_player: objDeck.players[1]
+						 });
+				}
+				else if (objDeck.players.length == 3){
+					res.render('two_player', { totalCards: objDeck.totalCards, 
+						showDeck: true, 
+						players: objDeck.players, 
+						message: "Welcome to table " + t.name, 
+						table_code: t._id.toString(), 
+						showMessage: true,
+						dealer: objDeck.players[0],
+						first_player: objDeck.players[1],
+						second_player: objDeck.players[2]
+					});
+				}
+				else if (objDeck.players.length == 4){
+					res.render('three_player', { totalCards: objDeck.totalCards, 
+						showDeck: true, 
+						players: objDeck.players, 
+						message: "Welcome to table " + t.name, 
+						table_code: t._id.toString(), 
+						showMessage: true,
+						dealer: objDeck.players[0],
+						first_player: objDeck.players[1],
+						second_player: objDeck.players[2],
+						third_player: objDeck.players[3]
+					});
+				}
 			}
 			else{
+				res.send(err);
+			}
+		});
+	});
+
+
+	app.post('/bet', function(req, res){
+		Table.findOne({ _id: req.body.table_code }).exec(function(err, t){
+			if (!err){
+				var thisDeck = JSON.parse(t.players);
+				deck_of_cards.placeBet.call(thisDeck, req.body.bet);
+				t.players = JSON.stringify(thisDeck);
+				t.save(function(err, t){
+					if (thisDeck.players.length == 2){
+						res.render('one_player', { totalCards: thisDeck.totalCards, 
+							showDeck: true, 
+							players: thisDeck.players, 
+							message: t.name, 
+							table_code: t._id.toString(), 
+							showMessage: true,
+							dealer: thisDeck.players[0],
+							first_player: thisDeck.players[1]
+						 });
+					}
+					else if (thisDeck.players.length == 3){
+						res.render('two_player', { totalCards: thisDeck.totalCards, 
+							showDeck: true, 
+							players: thisDeck.players, 
+							message: t.name, 
+							table_code: t._id.toString(), 
+							showMessage: true,
+							dealer: thisDeck.players[0],
+							first_player: thisDeck.players[1],
+							second_player: thisDeck.players[2]
+						 });
+					}
+					else if (thisDeck.players.length == 4){
+						res.render('three_player', { totalCards: thisDeck.totalCards, 
+							showDeck: true, 
+							players: thisDeck.players, 
+							message: t.name, 
+							table_code: t._id.toString(), 
+							showMessage: true,
+							dealer: thisDeck.players[0],
+							first_player: thisDeck.players[1],
+							second_player: thisDeck.players[2],
+							third_player: thisDeck.players[3]
+						});
+					}
+				});
+			}
+			else{
+				console.log(err);
 				res.redirect('/');
 			}
 		});
 	});
 
-	app.get('/start', function(req, res){
-		deck_of_cards.shuffle();
-		console.log(deck_of_cards);
-		var new_table = new Table({})
-		res.render('index', { totalCards: deck_of_cards.totalCards, showDeck: true, players: deck_of_cards.players });
-	});
-
-	app.get('/player/:name', function(req, res){
-		deck_of_cards.addPlayer(req.params.name);
-		console.log(deck_of_cards);
-		res.render('index', {  totalCards: deck_of_cards.totalCards, showDeck: true, showMessage: true, message: "Welcome, " + req.params.name });
-	});
-
-	app.get('/deal', function(req, res){
-		var betsIn = true;
-		deck_of_cards.players.forEach(function(player){
-			if (player.name != "dealer"){
-				if (player.bet == 0){
-					betsIn = false;
+	app.get('/deal/:table_code', function(req, res){
+		Table.findOne({ _id: req.params.table_code }).exec(function(err, t){
+			if (!err){
+				var betIn = true;
+				var thisDeck = JSON.parse(t.players);
+				thisDeck.players.forEach(function(player){
+					if (player.name != "dealer"){
+						if (player.bet == 0){
+							betIn = false;
+						}
+					}
+				});
+				if (!betIn){
+					res.render('index', { totalCards: thisDeck.totalCards, showDeck: true, showMessage: true, message: "Please make sure all players have placed bets!", players: thisDeck.players, table_code: t.table_code });
+				}
+				else{
+					thisDeck.__proto__ = deck_of_cards.__proto__;
+					thisDeck.assignCard();
+					t.players = JSON.stringify(thisDeck);
+					t.save(function(err, t){
+						if (thisDeck.players.length == 2){
+							res.render('one_player', { totalCards: thisDeck.totalCards, 
+								showDeck: true, 
+								players: thisDeck.players, 
+								message: t.name, 
+								table_code: t._id.toString(), 
+								showMessage: true,
+								dealer: thisDeck.players[0],
+								first_player: thisDeck.players[1]
+							 });
+						}
+						else if (thisDeck.players.length == 3){
+							res.render('two_player', { totalCards: thisDeck.totalCards, 
+								showDeck: true, 
+								players: thisDeck.players, 
+								message: t.name, 
+								table_code: t._id.toString(), 
+								showMessage: true,
+								dealer: thisDeck.players[0],
+								first_player: thisDeck.players[1],
+								second_player: thisDeck.players[2]
+							 });
+						}
+						else if (thisDeck.players.length == 4){
+							res.render('three_player', { totalCards: thisDeck.totalCards, 
+								showDeck: true, 
+								players: thisDeck.players, 
+								message: t.name, 
+								table_code: t._id.toString(), 
+								showMessage: true,
+								dealer: thisDeck.players[0],
+								first_player: thisDeck.players[1],
+								second_player: thisDeck.players[2],
+								third_player: thisDeck.players[3]
+							 });
+						}
+					});
 				}
 			}
 		});
-		if (!betsIn){
-			res.render('index', { totalCards: deck_of_cards.totalCards, showDeck: true, showMessage: true, message: "Please make sure all players have placed bets!", players: deck_of_cards.players });
-		}
-		else{
-			deck_of_cards.assignCard();
-			res.render('index', { totalCards: deck_of_cards.totalCards, showDeck: true, players: deck_of_cards.players });
-		}
 	});
 
-	app.get('/placebet/:value', function(req, res){
-		deck_of_cards.placeBet(req.params.value);
-		res.render('index', { totalCards: deck_of_cards.totalCards, showDeck: true, players: deck_of_cards.players });
+	app.get('/hold/:table_code', function(req, res){
+		Table.findOne({ _id: req.params.table_code }).exec(function(err, t){
+			if (!err){
+				var thisDeck = JSON.parse(t.players);
+				thisDeck.__proto__ = deck_of_cards.__proto__;
+				thisDeck.hold();
+				t.players = JSON.stringify(thisDeck);
+				t.save(function(err, t){
+					if (thisDeck.players.length == 2){
+						res.render('one_player', { totalCards: thisDeck.totalCards, 
+							showDeck: true, 
+							players: thisDeck.players, 
+							message: t.name, 
+							table_code: t._id.toString(), 
+							showMessage: true,
+							dealer: thisDeck.players[0],
+							first_player: thisDeck.players[1]
+						 });
+					}
+					else if (thisDeck.players.length == 3){
+						res.render('two_player', { totalCards: thisDeck.totalCards, 
+							showDeck: true, 
+							players: thisDeck.players, 
+							message: t.name, 
+							table_code: t._id.toString(), 
+							showMessage: true,
+							dealer: thisDeck.players[0],
+							first_player: thisDeck.players[1],
+							second_player: thisDeck.players[2]
+						 });
+					}
+					else if (thisDeck.players.length == 4){
+						res.render('three_player', { totalCards: thisDeck.totalCards, 
+							showDeck: true, 
+							players: thisDeck.players, 
+							message: t.name, 
+							table_code: t._id.toString(), 
+							showMessage: true,
+							dealer: thisDeck.players[0],
+							first_player: thisDeck.players[1],
+							second_player: thisDeck.players[2],
+							third_player: thisDeck.players[3]
+						});
+					}
+				});
+			}
+		});
 	});
+	
 
-	app.get('/hold', function(req, res){
-		deck_of_cards.hold();
-		res.render('index', { totalCards: deck_of_cards.totalCards, showDeck: true, players: deck_of_cards.players });
+	app.get('/double_down/:table_code', function(req, res){
+		Table.findOne({ _id: req.params.table_code }).exec(function(err, t){
+			if (!err){
+					var thisDeck = JSON.parse(t.players);
+					thisDeck.__proto__ = deck_of_cards.__proto__;
+					thisDeck.doubleDown();
+					t.players = JSON.stringify(thisDeck);
+					t.save(function(err, t){
+						if (thisDeck.players.length == 2){
+							res.render('one_player', { totalCards: thisDeck.totalCards, 
+								showDeck: true, 
+								players: thisDeck.players, 
+								message: t.name, 
+								table_code: t._id.toString(), 
+								showMessage: true,
+								dealer: thisDeck.players[0],
+								first_player: thisDeck.players[1]
+							 });
+						}
+						else if (thisDeck.players.length == 3){
+							res.render('two_player', { totalCards: thisDeck.totalCards, 
+								showDeck: true, 
+								players: thisDeck.players, 
+								message: t.name, 
+								table_code: t._id.toString(), 
+								showMessage: true,
+								dealer: thisDeck.players[0],
+								first_player: thisDeck.players[1],
+								second_player: thisDeck.players[2]
+							 });
+						}
+						else if (thisDeck.players.length == 4){
+							res.render('three_player', { totalCards: thisDeck.totalCards, 
+								showDeck: true, 
+								players: thisDeck.players, 
+								message: t.name, 
+								table_code: t._id.toString(), 
+								showMessage: true,
+								dealer: thisDeck.players[0],
+								first_player: thisDeck.players[1],
+								second_player: thisDeck.players[2],
+								third_player: thisDeck.players[3]
+							 });
+						}
+					});
+				}
+		});
 	});
 
 	app.get('/reset', function(req, res){
@@ -120,9 +374,31 @@ module.exports = function(app, io){
 		});
 	});
 
-	app.get('/double_down', function(req, res){
-		deck_of_cards.doubleDown();
-		res.render('index', { totalCards: deck_of_cards.totalCards, showDeck: true, players: deck_of_cards.players });
+	passport.use(new LocalStrategy(
+		function(username, password, done) {
+			User.findOne({ username: username }, function(err, user){
+				if (err) {
+					return done(err);
+				}
+				if (!user) {
+					return done(null, false, { message: "Incorrect username" });
+				}
+				if (!user.validatePassword(password)) {
+					return done(null, false, { message: "Incorrect password" });
+				}
+				return done(null, user);
+			});
+		})
+	);
+
+	passport.serializeUser(function(user, done) {
+	  done(null, user.UID);
+	});
+
+	passport.deserializeUser(function(id, done) {
+	  User.find({ UID: id }, function(err, user) {
+	    done(err, user);
+	  });
 	});
 
 }

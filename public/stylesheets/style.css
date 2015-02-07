@@ -1,7 +1,7 @@
 #table {
 	border:1px solid black;
 	border-radius: 25px;
-	height:500px;
+	height:600px;
 	margin:1% 2.5% 2.5% 2.5%;
 	background: url(http://www.pandorasupholstery.co.uk/products_pictures/Green%20G.JPG) no-repeat center center fixed; 
 	  -webkit-background-size: cover;
@@ -20,8 +20,12 @@
 	 text-align:center;
 }
 
-.player {
-	position: relative;
+.col-lg-4 {
+	display: inline;
+	float: left;
+	height:166px;
+	color: white !important;
+	width: 32%;
 }
 
 .nav_btn:hover {

@@ -86,6 +86,7 @@ function Card(val, numVal){
 	this.faceValue = val;
 	this.numericalValue = numVal;
 	this.nextCard = null;
+	this.file = "/images/" + val + ".png";
 }
 
 Blackjack.prototype.dealCard = function(){
@@ -237,20 +238,14 @@ Blackjack.prototype.hold = function(){
 
 Blackjack.prototype.addPlayer = function(playerName){
 	var playerObject = new Player(this.playerTotal, playerName)
-	if (this.playerTotal == 1 || this.playerTotal == 2){
-		playerObject.tablePos.left = (Number(4 - (this.playerTotal / 2)) * (27.5 / this.playerTotal)) + "%";
-		playerObject.tablePos.top = (Number(1 + this.playerTotal) * 5) + "%";
-	}
-	else if (this.playerTotal == 3){
-		playerObject.tablePos.left = "1%";
-		playerObject.tablePos.top = "-32.5%";
+	if (this.playerTotal < 4){
+		//console.log(playerObject);
+		this.players.push(playerObject);
+		this.playerTotal++;
 	}
 	else{
-		return "Only 3 players are allowed at this table!";
+		return "Only 4 players allowed";
 	}
-	console.log(playerObject);
-	this.players.push(playerObject);
-	this.playerTotal++;
 }
 
 Blackjack.prototype.placeBet = function(val){
@@ -283,12 +278,12 @@ Blackjack.prototype.doubleDown = function(){
 
 function Player(playerNum, playerName){
 	this[playerNum] = [];
+	this.playerNum = playerNum;
 	this.name = playerName;
 	this.hasHold = false;
 	this.handsValue = 0;
 	this.funds = 100;
 	this.bet = 0;
-	this.tablePos = {};
 }
 
 var newBlackjack = function(){

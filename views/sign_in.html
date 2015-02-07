@@ -1,0 +1,28 @@
+{% extends "landing.html" %}
+  	{% block header %}
+  		<div id="header" class="row" style='width:100%;height:50px;'>
+	  		{% if showMessage == true %}
+	  		<h4 style="display:inline;float:left;margin-left:5%;color:white;">{{message}}</h4>
+	  		{% endif %}
+  		</div>
+  	{% endblock %}
+  	{% block content %}
+  		<div class='col-sm-4'>
+      </div>
+      <main class='col-sm-4' style='color:white;background:grey;border-radius: 5px;opacity: 0.9;padding-top: 1.5%;margin-bottom:1.5%;'>
+        <form action="/login" method="POST">
+          <input type="hidden" name="userId" value="{{user.UID}}">
+          <div class="form-group">
+            <label for="username">Username</label>
+            <input type="text" class="form-control" name="username" id="username">
+          </div>
+          <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" class="form-control" name="password" id="password">
+          </div>
+          <button class="btn btn-primary" style="margin-bottom:5%;" type="submit">Submit</button>
+        </form>
+      </main>
+      <div class='col-sm-4'>
+      </div>
+  	{% endblock %}

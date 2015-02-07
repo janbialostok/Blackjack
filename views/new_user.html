@@ -1,0 +1,43 @@
+{% extends "landing.html" %}
+  	{% block header %}
+  		<div id="header" class="row" style='width:100%;height:50px;'>
+	  		{% if showMessage == true %}
+	  		<h4 style="display:inline;float:left;margin-left:5%;color:white;">{{message}}</h4>
+	  		{% endif %}
+  		</div>
+  	{% endblock %}
+  	{% block content %}
+  		<div class='col-sm-4'>
+      </div>
+      <main class='col-sm-4' style='color:white;background:grey;border-radius: 5px;opacity: 0.9;padding-top: 1.5%;'>
+        <form action="/new_user" method="POST">
+          <div class="form-group">
+            <label for="first_name">First Name</label>
+            <input type="text" class="form-control" name="first_name" id="first_name">
+          </div>
+          <div class="form-group">
+            <label for="new_username">Username</label>
+            <input type="text" class="form-control" name="new_username" id="new_username">
+          </div>
+          <div class="form-group">
+            <label for="new_password">Password</label>
+            <input type="password" class="form-control" name="new_password" id="new_password">
+          </div>
+          <div class="form-group">
+            <label for="confirm_password">Confirm Password</label>
+            <input type="password" class="form-control" name="confirm_password" id="confirm_password">
+          </div>
+          <div class="form-group">
+            <label for="new_passphrase">Secret Passphrase</label>
+            <input type="text" class="form-control" name="new_passphrase" id="new_passphrase">
+          </div>
+          <div class="form-group">
+            <label for="new_avatar">Select Picture for Avatar</label>
+            <input type="file" class="form-control" name="new_avatar" id="new_avatar">
+          </div>
+          <button class="btn btn-primary" style="margin-bottom:5%;" type="submit">Sign Up</button>
+        </form>
+      </main>
+      <div class='col-sm-4'>
+      </div>
+  	{% endblock %}
