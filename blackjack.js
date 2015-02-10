@@ -236,8 +236,8 @@ Blackjack.prototype.hold = function(){
 	this.findNextPlayer(this.cardSpot);
 }
 
-Blackjack.prototype.addPlayer = function(playerName){
-	var playerObject = new Player(this.playerTotal, playerName)
+Blackjack.prototype.addPlayer = function(playerName, player_id){
+	var playerObject = new Player(this.playerTotal, playerName, player_id)
 	if (this.playerTotal < 4){
 		//console.log(playerObject);
 		this.players.push(playerObject);
@@ -276,7 +276,7 @@ Blackjack.prototype.doubleDown = function(){
     }
 }
 
-function Player(playerNum, playerName){
+function Player(playerNum, playerName, player_id){
 	this[playerNum] = [];
 	this.playerNum = playerNum;
 	this.name = playerName;
@@ -284,6 +284,7 @@ function Player(playerNum, playerName){
 	this.handsValue = 0;
 	this.funds = 100;
 	this.bet = 0;
+	this.player_id = player_id;
 }
 
 var newBlackjack = function(){
@@ -299,4 +300,4 @@ var newPlayer = function(){
 	var i = new Player();
 	return i;
 };
-module.exports = { Blackjack: newBlackjack, Card: newCard, Player: newPlayer }
+module.exports = { Blackjack: newBlackjack, Card: newCard, Player: newPlayer, BJ: Blackjack }

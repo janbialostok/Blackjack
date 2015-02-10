@@ -27,6 +27,17 @@
         </div>
         <div class="row">
           <div class="col-lg-4">
+            <div class='form-group'>
+              <form action='/join_table' method='POST'>
+                  <input type='hidden' name='table_code' value='{{table_code}}'>
+                  <input type='hidden' name='player' value='3'>
+                {% if showUser != true %}
+                  <label for="name">Enter Name</label>
+                  <input type='text' class="form-control" name="name">
+                {% endif %}
+                  <button type="submit" class="btn btn-primary">Join Table</button>
+              </form>
+            </div>
           </div>
           <div class="col-lg-4">
           {% if showDeck == true %}
@@ -40,6 +51,7 @@
               <a href="/deal/{{table_code}}" class='btn btn-xs' style='background-color: red !important;'>Hit</a>
               <a href="/hold/{{table_code}}" class='btn btn-xs' style='background-color: red !important;'>Hold</a>
               <a href="/double_down/{{table_code}}" class='btn btn-xs' style='background-color: red !important;'>Double Down</a>
+              <a href="/leave/{{table_code}}/{{first_player.playerNum}}" class="btn btn-xs" style='background-color: red !important;'>Leave Table</a>
               <div style='width:50%;'>
                 <h4>{{first_player.name}}</h4>
                 <div id='{{first_player.name}}shand'>
@@ -60,7 +72,9 @@
             <div class='form-group'>
               <form style='form-inline' action="/bet" method="POST">
                   <input type="hidden" name="table_code" value="{{table_code}}">
-                  <input type="hidden" name="name" value="{{first_player.name}}">
+                  {% if first_player.player_id != undefined %}
+                    <input type="hidden" name="UID" value="{{first_player.player_id}}">
+                  {% endif %}
                   <input type="number" class="form-control" name="bet">
                   <button type="submit" class="btn btn-xs">Bet</button>
               </form>
@@ -74,6 +88,7 @@
               <a href="/deal/{{table_code}}" class='btn btn-xs' style='background-color: red !important;'>Hit</a>
               <a href="/hold/{{table_code}}" class='btn btn-xs' style='background-color: red !important;'>Hold</a>
               <a href="/double_down/{{table_code}}" class='btn btn-xs' style='background-color: red !important;'>Double Down</a>
+              <a href="/leave/{{table_code}}/{{second_player.playerNum}}" class="btn btn-xs" style='background-color: red !important;'>Leave Table</a>
               <div style='width:50%;'>
                 <h4>{{second_player.name}}</h4>
                 <div id='{{second_player.name}}shand'>
@@ -94,7 +109,9 @@
             <div class='form-group'>
               <form style='form-inline' action="/bet" method="POST">
                   <input type="hidden" name="table_code" value="{{table_code}}">
-                  <input type="hidden" name="name" value="{{second_player.name}}">
+                  {% if second_player.player_id != undefined %}
+                    <input type="hidden" name="UID" value="{{second_player.player_id}}">
+                  {% endif %}
                   <input type="number" class="form-control" name="bet">
                   <button type="submit" class="btn btn-xs">Bet</button>
               </form>
