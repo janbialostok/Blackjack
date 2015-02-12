@@ -40,7 +40,7 @@ userSchema.methods.findFriends = function(){
 }
 
 userSchema.methods.encryptPassword = function(password, passphrase, formatter){
-	this.password = aes.encrypt(password, passphrase, formatter);
+	this.password = crypto.AES.encrypt(password, passphrase, formatter);
 }
 
 userSchema.methods.createID = function(username){
@@ -49,11 +49,14 @@ userSchema.methods.createID = function(username){
 
 
 userSchema.methods.validatePassword = function(password){
-	var decrypted = aes.decrypt(this.password, this.passphrase, { format: JsonFormatter });
-	if (decrypted.toString(crypto.enc.Utf8) == password){
+	var decrypted = crypto.AES.decrypt(this.password, this.passphrase, { format: JsonFormatter });
+	var decryptedStr = decrypted.toString(crypto.enc.Utf8);
+	if (decryptedStr == password){
+		console.log(decryptedStr + " " + password);
 		return true;
 	}
 	else{
+		console.log(decryptedStr + " " + password);
 		return false;
 	}
 }

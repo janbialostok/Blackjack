@@ -7,9 +7,7 @@
   		</div>
   	{% endblock %}
   	{% block content %}
-  		<div class='col-sm-4'>
-      </div>
-      <main class='col-sm-4' style='color:white;background:grey;border-radius: 5px;opacity: 0.9;padding-top: 1.5%;margin-bottom:1.5%;'>
+      <main class='col-sm-7' style='color:white;background:grey;border-radius: 5px;opacity: 0.9;padding-top: 1.5%;margin-bottom:1.5%;'>
         <form action="/edit_user" method="POST">
           <input type="hidden" name="userId" value="{{userObj.UID}}">
           <div class="form-group">
@@ -39,6 +37,14 @@
           <button class="btn btn-primary" style="margin-bottom:5%;" type="submit">Edit</button>
         </form>
       </main>
-      <div class='col-sm-4'>
-      </div>
+      <aside class='col-sm-4' style='color:white;background:grey;border-radius: 5px;opacity: 0.9;padding-top: 1.5%;margin-bottom:1.5%;margin-left:1%;'>
+        <div class="form-group">
+          <form action="/friend_request" method="POST">
+            <label for='friend'>Find Friend</label>
+            <input type='text' name='friend' class='form-control'>
+            <input type='hidden' name='UID' value='{{userObj.UID}}'>
+            <button type='submit' class='btn btn-primary'>Add Friend</button>
+          </form>
+        </div>
+      </aside>
   	{% endblock %}

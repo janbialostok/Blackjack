@@ -48,10 +48,16 @@
           {% endif %}
           </div>
           <div class='col-lg-4' id='{{first_player.name}}'>
-              <a href="/deal/{{table_code}}" class='btn btn-xs' style='background-color: red !important;'>Hit</a>
-              <a href="/hold/{{table_code}}" class='btn btn-xs' style='background-color: red !important;'>Hold</a>
-              <a href="/double_down/{{table_code}}" class='btn btn-xs' style='background-color: red !important;'>Double Down</a>
-              <a href="/leave/{{table_code}}/{{first_player.playerNum}}" class="btn btn-xs" style='background-color: red !important;'>Leave Table</a>
+              {% if cardSpot != 1 || betSpot <= players.length - 1 %}
+                <a href="/deal/{{table_code}}" class='btn btn-xs' style='background-color: red !important;' disabled='true'>Hit</a>
+                <a href="/hold/{{table_code}}" class='btn btn-xs' style='background-color: red !important;' disabled='true'>Hold</a>
+                <a href="/double_down/{{table_code}}" class='btn btn-xs' style='background-color: red !important;' disabled='true'>Double Down</a>
+              {% else %}
+                <a href="/deal/{{table_code}}" class='btn btn-xs' style='background-color: red !important;'>Hit</a>
+                <a href="/hold/{{table_code}}" class='btn btn-xs' style='background-color: red !important;'>Hold</a>
+                <a href="/double_down/{{table_code}}" class='btn btn-xs' style='background-color: red !important;'>Double Down</a>
+              {% endif %}
+                <a href="/leave/{{table_code}}/{{first_player.playerNum}}" class="btn btn-xs" style='background-color: red !important;'>Leave Table</a>
               <div style='width:50%;'>
                 <h4>{{first_player.name}}</h4>
                 <div id='{{first_player.name}}shand'>
@@ -75,8 +81,12 @@
                   {% if first_player.player_id != undefined %}
                     <input type="hidden" name="UID" value="{{first_player.player_id}}">
                   {% endif %}
-                  <input type="number" class="form-control" name="bet">
-                  <button type="submit" class="btn btn-xs">Bet</button>
+                  <input type="number" class="form-control" name="bet" min="1">
+                  {% if betSpot != 1 %}
+                    <button type="submit" class="btn btn-xs" disabled="true">Bet</button>
+                  {% else %}
+                    <button type="submit" class="btn btn-xs">Bet</button>
+                  {% endif %}
               </form>
             </div>
           </div>
@@ -85,10 +95,16 @@
           <div class="col-lg-4">
           </div>
           <div class='col-lg-4' id='{{second_player.name}}'>
-              <a href="/deal/{{table_code}}" class='btn btn-xs' style='background-color: red !important;'>Hit</a>
-              <a href="/hold/{{table_code}}" class='btn btn-xs' style='background-color: red !important;'>Hold</a>
-              <a href="/double_down/{{table_code}}" class='btn btn-xs' style='background-color: red !important;'>Double Down</a>
-              <a href="/leave/{{table_code}}/{{second_player.playerNum}}" class="btn btn-xs" style='background-color: red !important;'>Leave Table</a>
+              {% if cardSpot != 2 || betSpot <= players.length - 1 %}
+                <a href="/deal/{{table_code}}" class='btn btn-xs' style='background-color: red !important;' disabled='true'>Hit</a>
+                <a href="/hold/{{table_code}}" class='btn btn-xs' style='background-color: red !important;' disabled='true'>Hold</a>
+                <a href="/double_down/{{table_code}}" class='btn btn-xs' style='background-color: red !important;' disabled='true'>Double Down</a>
+              {% else %}
+                <a href="/deal/{{table_code}}" class='btn btn-xs' style='background-color: red !important;'>Hit</a>
+                <a href="/hold/{{table_code}}" class='btn btn-xs' style='background-color: red !important;'>Hold</a>
+                <a href="/double_down/{{table_code}}" class='btn btn-xs' style='background-color: red !important;'>Double Down</a>
+              {% endif %}
+                <a href="/leave/{{table_code}}/{{first_player.playerNum}}" class="btn btn-xs" style='background-color: red !important;'>Leave Table</a>
               <div style='width:50%;'>
                 <h4>{{second_player.name}}</h4>
                 <div id='{{second_player.name}}shand'>
@@ -112,8 +128,12 @@
                   {% if second_player.player_id != undefined %}
                     <input type="hidden" name="UID" value="{{second_player.player_id}}">
                   {% endif %}
-                  <input type="number" class="form-control" name="bet">
-                  <button type="submit" class="btn btn-xs">Bet</button>
+                  <input type="number" class="form-control" name="bet" min='1'>
+                  {% if betSpot != 2 %}
+                    <button type="submit" class="btn btn-xs" disabled="true">Bet</button>
+                  {% else %}
+                    <button type="submit" class="btn btn-xs">Bet</button>
+                  {% endif %}
               </form>
             </div>
           </div>

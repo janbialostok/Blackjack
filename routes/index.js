@@ -46,71 +46,140 @@ module.exports = function(app, io){
 		res.render('sign_in', { message: "Sign In", showMessage: true, });
 	});
 
+	var parseAndSetProto = function(table){
+		var thisDeck = JSON.parse(table).prototype = Object.create(deck.BJ.prototype);
+		var thisDeckHolder = JSON.parse(table);
+		for (var key in thisDeckHolder){
+			if (thisDeckHolder.hasOwnProperty(key)){
+				thisDeck[key] = thisDeckHolder[key];
+			}
+		}
+		return thisDeck;
+	}
+
+	var renderDeck = function(error, deck, table, res, session, user, id){
+		if (session && !error){
+			if (deck.players.length == 2){
+				res.render('one_player', { totalCards: deck.totalCards, 
+					showDeck: true, 
+					players: deck.players, 
+					message: table.name, 
+					table_code: table._id.toString(), 
+					showMessage: true,
+					dealer: deck.players[0],
+					first_player: deck.players[1],
+					cardSpot: deck.cardSpot,
+					betSpot: deck.betSpot,
+					showUser: true,
+					user: user.username,
+					ID: id
+				 });
+			}
+			else if (deck.players.length == 3){
+				res.render('two_player', { totalCards: deck.totalCards, 
+					showDeck: true, 
+					players: deck.players, 
+					message: table.name, 
+					table_code: table._id.toString(), 
+					showMessage: true,
+					dealer: deck.players[0],
+					first_player: deck.players[1],
+					second_player: deck.players[2],
+					cardSpot: deck.cardSpot,
+					betSpot: deck.betSpot,
+					showUser: true,
+					user: user.username,
+					ID: id
+				 });
+			}
+			else if (deck.players.length == 4){
+				res.render('three_player', { totalCards: deck.totalCards, 
+					showDeck: true, 
+					players: deck.players, 
+					message: table.name, 
+					table_code: table._id.toString(), 
+					showMessage: true,
+					dealer: deck.players[0],
+					first_player: deck.players[1],
+					second_player: deck.players[2],
+					third_player: deck.players[3],
+					cardSpot: deck.cardSpot,
+					betSpot: deck.betSpot,
+					showUser: true,
+					user: user.username,
+					ID: id
+				});
+			}
+		}
+		else if (!session && !error){
+			if (deck.players.length == 2){
+				res.render('one_player', { totalCards: deck.totalCards, 
+					showDeck: true, 
+					players: deck.players, 
+					message: table.name, 
+					table_code: table._id.toString(), 
+					showMessage: true,
+					dealer: deck.players[0],
+					first_player: deck.players[1],
+					cardSpot: deck.cardSpot,
+					betSpot: deck.betSpot
+				 });
+			}
+			else if (deck.players.length == 3){
+				res.render('two_player', { totalCards: deck.totalCards, 
+					showDeck: true, 
+					players: deck.players, 
+					message: table.name, 
+					table_code: table._id.toString(), 
+					showMessage: true,
+					dealer: deck.players[0],
+					first_player: deck.players[1],
+					second_player: deck.players[2],
+					cardSpot: deck.cardSpot,
+					betSpot: deck.betSpot
+				 });
+			}
+			else if (deck.players.length == 4){
+				res.render('three_player', { totalCards: deck.totalCards, 
+					showDeck: true, 
+					players: deck.players, 
+					message: table.name, 
+					table_code: table._id.toString(), 
+					showMessage: true,
+					dealer: deck.players[0],
+					first_player: deck.players[1],
+					second_player: deck.players[2],
+					third_player: deck.players[3],
+					cardSpot: deck.cardSpot,
+					betSpot: deck.betSpot
+				});
+			}
+		}
+		else{
+			res.send(error)
+		}
+	}
+
 	app.post('/join_table', function(req, res){
 		if (req.session.passport.user){
 			User.findOne({ UID: req.session.passport.user }, function(err, user){
 				if (!err){
 					Table.findOne({ _id: req.body.table_code }, function(err, table){
 						if (!err){
-							var thisDeck = JSON.parse(table.players);
-							thisDeck.__proto__ = deck_of_cards.__proto__;
+							var thisDeck = parseAndSetProto(table.players);
 							thisDeck.addPlayer(user.username, user.UID);
 							thisDeck.players[Number(req.body.player)].funds = user.bank;
 							table.players = JSON.stringify(thisDeck);
 							table.save(function(err, t){
-								if (thisDeck.players.length == 2){
-									res.render('one_player', { totalCards: thisDeck.totalCards, 
-										showDeck: true, 
-										players: thisDeck.players, 
-										message: t.name, 
-										table_code: t._id.toString(), 
-										showMessage: true,
-										dealer: thisDeck.players[0],
-										first_player: thisDeck.players[1],
-										showUser: true,
-										user: user.username,
-										ID: req.session.passport.user
-									 });
-								}
-								else if (thisDeck.players.length == 3){
-									res.render('two_player', { totalCards: thisDeck.totalCards, 
-										showDeck: true, 
-										players: thisDeck.players, 
-										message: t.name, 
-										table_code: t._id.toString(), 
-										showMessage: true,
-										dealer: thisDeck.players[0],
-										first_player: thisDeck.players[1],
-										second_player: thisDeck.players[2],
-										showUser: true,
-										user: user.username,
-										ID: req.session.passport.user
-									 });
-								}
-								else if (thisDeck.players.length == 4){
-									res.render('three_player', { totalCards: thisDeck.totalCards, 
-										showDeck: true, 
-										players: thisDeck.players, 
-										message: t.name, 
-										table_code: t._id.toString(), 
-										showMessage: true,
-										dealer: thisDeck.players[0],
-										first_player: thisDeck.players[1],
-										second_player: thisDeck.players[2],
-										third_player: thisDeck.players[3],
-										showUser: true,
-										user: user.username,
-										ID: req.session.passport.user
-									});
-								}
+								renderDeck(err, thisDeck, t, res, true, user, req.session.passport.user);
 							});
 						}
-						else{	
+						else{
 							res.send(err);
 						}
 					});
 				}
-				else{	
+				else{
 					res.send(err);
 				}
 			});
@@ -118,58 +187,152 @@ module.exports = function(app, io){
 		else{
 			Table.findOne({ _id: req.body.table_code }, function(err, table){
 				if (!err){
-					var thisDeck = JSON.parse(table.players);
-					thisDeck.__proto__ = deck_of_cards.__proto__;
-					// console.log('with proto: ', thisDeck);
-					// console.log('looking at proto: ', thisDeck.__proto__);
+					var thisDeck = parseAndSetProto(table.players);
 					thisDeck.addPlayer(req.body.name);
 					table.players = JSON.stringify(thisDeck);
 					table.save(function(err, t){
-						if (thisDeck.players.length == 2){
-							res.render('one_player', { totalCards: thisDeck.totalCards, 
-								showDeck: true, 
-								players: thisDeck.players, 
-								message: t.name, 
-								table_code: t._id.toString(), 
-								showMessage: true,
-								dealer: thisDeck.players[0],
-								first_player: thisDeck.players[1]
-							 });
-						}
-						else if (thisDeck.players.length == 3){
-							res.render('two_player', { totalCards: thisDeck.totalCards, 
-								showDeck: true, 
-								players: thisDeck.players, 
-								message: t.name, 
-								table_code: t._id.toString(), 
-								showMessage: true,
-								dealer: thisDeck.players[0],
-								first_player: thisDeck.players[1],
-								second_player: thisDeck.players[2]
-							 });
-						}
-						else if (thisDeck.players.length == 4){
-							res.render('three_player', { totalCards: thisDeck.totalCards, 
-								showDeck: true, 
-								players: thisDeck.players, 
-								message: t.name, 
-								table_code: t._id.toString(), 
-								showMessage: true,
-								dealer: thisDeck.players[0],
-								first_player: thisDeck.players[1],
-								second_player: thisDeck.players[2],
-								third_player: thisDeck.players[3]
-							});
-						}
+						renderDeck(err, thisDeck, t, res, false);
 					});
 				}
 				else{
 					res.send(err);
 				}
-
 			});
 		}
 	});
+	
+	// app.post('/join_table', function(req, res){
+	// 	if (req.session.passport.user){
+	// 		User.findOne({ UID: req.session.passport.user }, function(err, user){
+	// 			if (!err){
+	// 				Table.findOne({ _id: req.body.table_code }, function(err, table){
+	// 					if (!err){
+	// 						var thisDeck = parseAndSetProto(table.players);
+	// 						thisDeck.addPlayer(user.username, user.UID);
+	// 						thisDeck.players[Number(req.body.player)].funds = user.bank;
+	// 						table.players = JSON.stringify(thisDeck);
+	// 						table.save(function(err, t){
+	// 							if (thisDeck.players.length == 2){
+	// 								res.render('one_player', { totalCards: thisDeck.totalCards, 
+	// 									showDeck: true, 
+	// 									players: thisDeck.players, 
+	// 									message: t.name, 
+	// 									table_code: t._id.toString(), 
+	// 									showMessage: true,
+	// 									dealer: thisDeck.players[0],
+	// 									first_player: thisDeck.players[1],
+	// 									cardSpot: thisDeck.cardSpot,
+	// 									betSpot: thisDeck.betSpot,
+	// 									showUser: true,
+	// 									user: user.username,
+	// 									ID: req.session.passport.user
+	// 								 });
+	// 							}
+	// 							else if (thisDeck.players.length == 3){
+	// 								res.render('two_player', { totalCards: thisDeck.totalCards, 
+	// 									showDeck: true, 
+	// 									players: thisDeck.players, 
+	// 									message: t.name, 
+	// 									table_code: t._id.toString(), 
+	// 									showMessage: true,
+	// 									dealer: thisDeck.players[0],
+	// 									first_player: thisDeck.players[1],
+	// 									second_player: thisDeck.players[2],
+	// 									cardSpot: thisDeck.cardSpot,
+	// 									betSpot: thisDeck.betSpot,
+	// 									showUser: true,
+	// 									user: user.username,
+	// 									ID: req.session.passport.user
+	// 								 });
+	// 							}
+	// 							else if (thisDeck.players.length == 4){
+	// 								res.render('three_player', { totalCards: thisDeck.totalCards, 
+	// 									showDeck: true, 
+	// 									players: thisDeck.players, 
+	// 									message: t.name, 
+	// 									table_code: t._id.toString(), 
+	// 									showMessage: true,
+	// 									dealer: thisDeck.players[0],
+	// 									first_player: thisDeck.players[1],
+	// 									second_player: thisDeck.players[2],
+	// 									third_player: thisDeck.players[3],
+	// 									cardSpot: thisDeck.cardSpot,
+	// 									betSpot: thisDeck.betSpot,
+	// 									showUser: true,
+	// 									user: user.username,
+	// 									ID: req.session.passport.user
+	// 								});
+	// 							}
+	// 						});
+	// 					}
+	// 					else{	
+	// 						res.send(err);
+	// 					}
+	// 				});
+	// 			}
+	// 			else{	
+	// 				res.send(err);
+	// 			}
+	// 		});
+	// 	}
+	// 	else{
+	// 		Table.findOne({ _id: req.body.table_code }, function(err, table){
+	// 			if (!err){
+	// 				var thisDeck = parseAndSetProto(table.players);
+	// 				thisDeck.addPlayer(req.body.name);
+	// 				table.players = JSON.stringify(thisDeck);
+	// 				table.save(function(err, t){
+	// 					if (thisDeck.players.length == 2){
+	// 						res.render('one_player', { totalCards: thisDeck.totalCards, 
+	// 							showDeck: true, 
+	// 							players: thisDeck.players, 
+	// 							message: t.name, 
+	// 							table_code: t._id.toString(), 
+	// 							showMessage: true,
+	// 							dealer: thisDeck.players[0],
+	// 							first_player: thisDeck.players[1],
+	// 							cardSpot: thisDeck.cardSpot,
+	// 							betSpot: thisDeck.betSpot
+	// 						 });
+	// 					}
+	// 					else if (thisDeck.players.length == 3){
+	// 						res.render('two_player', { totalCards: thisDeck.totalCards, 
+	// 							showDeck: true, 
+	// 							players: thisDeck.players, 
+	// 							message: t.name, 
+	// 							table_code: t._id.toString(), 
+	// 							showMessage: true,
+	// 							dealer: thisDeck.players[0],
+	// 							first_player: thisDeck.players[1],
+	// 							second_player: thisDeck.players[2],
+	// 							cardSpot: thisDeck.cardSpot,
+	// 							betSpot: thisDeck.betSpot
+	// 						 });
+	// 					}
+	// 					else if (thisDeck.players.length == 4){
+	// 						res.render('three_player', { totalCards: thisDeck.totalCards, 
+	// 							showDeck: true, 
+	// 							players: thisDeck.players, 
+	// 							message: t.name, 
+	// 							table_code: t._id.toString(), 
+	// 							showMessage: true,
+	// 							dealer: thisDeck.players[0],
+	// 							first_player: thisDeck.players[1],
+	// 							second_player: thisDeck.players[2],
+	// 							third_player: thisDeck.players[3],
+	// 							cardSpot: thisDeck.cardSpot,
+	// 							betSpot: thisDeck.betSpot
+	// 						});
+	// 					}
+	// 				});
+	// 			}
+	// 			else{
+	// 				res.send(err);
+	// 			}
+
+	// 		});
+	// 	}
+	// });
 
 	app.get('/leave/:table_code/:number', function(req, res){
 		Table.findOne({ _id: req.params.table_code }, function(err, table){
@@ -296,6 +459,8 @@ module.exports = function(app, io){
 								showMessage: true,
 								dealer: objDeck.players[0],
 								first_player: objDeck.players[1],
+								cardSpot: objDeck.cardSpot,
+								betSpot: objDeck.betSpot,
 								showUser: true, 
 								user: user.username,
 								ID: req.session.passport.user
@@ -311,6 +476,8 @@ module.exports = function(app, io){
 								dealer: objDeck.players[0],
 								first_player: objDeck.players[1],
 								second_player: objDeck.players[2],
+								cardSpot: objDeck.cardSpot,
+								betSpot: objDeck.betSpot,
 								showUser: true, 
 								user: user.username,
 								ID: req.session.passport.user
@@ -327,6 +494,8 @@ module.exports = function(app, io){
 								first_player: objDeck.players[1],
 								second_player: objDeck.players[2],
 								third_player: objDeck.players[3],
+								cardSpot: objDeck.cardSpot,
+								betSpot: objDeck.betSpot,
 								showUser: true, 
 								user: user.username,
 								ID: req.session.passport.user
@@ -343,7 +512,9 @@ module.exports = function(app, io){
 							table_code: t._id.toString(), 
 							showMessage: true,
 							dealer: objDeck.players[0],
-							first_player: objDeck.players[1]
+							first_player: objDeck.players[1],
+							cardSpot: objDeck.cardSpot,
+							betSpot: objDeck.betSpot
 						});
 					}
 					else if (objDeck.players.length == 3){
@@ -355,7 +526,9 @@ module.exports = function(app, io){
 							showMessage: true,
 							dealer: objDeck.players[0],
 							first_player: objDeck.players[1],
-							second_player: objDeck.players[2]
+							second_player: objDeck.players[2],
+							cardSpot: objDeck.cardSpot,
+							betSpot: objDeck.betSpot
 						});
 					}
 					else if (objDeck.players.length == 4){
@@ -368,7 +541,9 @@ module.exports = function(app, io){
 							dealer: objDeck.players[0],
 							first_player: objDeck.players[1],
 							second_player: objDeck.players[2],
-							third_player: objDeck.players[3]
+							third_player: objDeck.players[3],
+							cardSpot: objDeck.cardSpot,
+							betSpot: objDeck.betSpot
 						});
 					}
 				}
@@ -403,6 +578,8 @@ module.exports = function(app, io){
 											showMessage: true,
 											dealer: thisDeck.players[0],
 											first_player: thisDeck.players[1],
+											cardSpot: thisDeck.cardSpot,
+											betSpot: thisDeck.betSpot,
 											showUser: true,
 											user: user.username,
 											ID: req.session.passport.user
@@ -418,6 +595,8 @@ module.exports = function(app, io){
 											dealer: thisDeck.players[0],
 											first_player: thisDeck.players[1],
 											second_player: thisDeck.players[2],
+											cardSpot: thisDeck.cardSpot,
+											betSpot: thisDeck.betSpot,
 											showUser: true,
 											user: user.username,
 											ID: req.session.passport.user
@@ -434,6 +613,8 @@ module.exports = function(app, io){
 											first_player: thisDeck.players[1],
 											second_player: thisDeck.players[2],
 											third_player: thisDeck.players[3],
+											cardSpot: thisDeck.cardSpot,
+											betSpot: thisDeck.betSpot,
 											showUser: true,
 											user: user.username,
 											ID: req.session.passport.user
@@ -451,6 +632,8 @@ module.exports = function(app, io){
 										showMessage: true,
 										dealer: thisDeck.players[0],
 										first_player: thisDeck.players[1],
+										cardSpot: thisDeck.cardSpot,
+										betSpot: thisDeck.betSpot,
 										showUser: true,
 										user: user.username,
 										ID: req.session.passport.user
@@ -466,6 +649,8 @@ module.exports = function(app, io){
 										dealer: thisDeck.players[0],
 										first_player: thisDeck.players[1],
 										second_player: thisDeck.players[2],
+										cardSpot: thisDeck.cardSpot,
+										betSpot: thisDeck.betSpot,
 										showUser: true,
 										user: user.username,
 										ID: req.session.passport.user
@@ -482,6 +667,8 @@ module.exports = function(app, io){
 										first_player: thisDeck.players[1],
 										second_player: thisDeck.players[2],
 										third_player: thisDeck.players[3],
+										cardSpot: thisDeck.cardSpot,
+										betSpot: thisDeck.betSpot,
 										showUser: true,
 										user: user.username,
 										ID: req.session.passport.user
@@ -499,7 +686,9 @@ module.exports = function(app, io){
 								table_code: t._id.toString(), 
 								showMessage: true,
 								dealer: thisDeck.players[0],
-								first_player: thisDeck.players[1]
+								first_player: thisDeck.players[1],
+								cardSpot: thisDeck.cardSpot,
+								betSpot: thisDeck.betSpot
 							 });
 						}
 						else if (thisDeck.players.length == 3){
@@ -511,7 +700,9 @@ module.exports = function(app, io){
 								showMessage: true,
 								dealer: thisDeck.players[0],
 								first_player: thisDeck.players[1],
-								second_player: thisDeck.players[2]
+								second_player: thisDeck.players[2],
+								cardSpot: thisDeck.cardSpot,
+								betSpot: thisDeck.betSpot
 							 });
 						}
 						else if (thisDeck.players.length == 4){
@@ -524,7 +715,9 @@ module.exports = function(app, io){
 								dealer: thisDeck.players[0],
 								first_player: thisDeck.players[1],
 								second_player: thisDeck.players[2],
-								third_player: thisDeck.players[3]
+								third_player: thisDeck.players[3],
+								cardSpot: thisDeck.cardSpot,
+								betSpot: thisDeck.betSpot
 							});
 						}
 					}
@@ -541,7 +734,7 @@ module.exports = function(app, io){
 		Table.findOne({ _id: req.params.table_code }).exec(function(err, t){
 			var betsIn = true;
 			if (!err){
-				var thisDeck = JSON.parse(t.players);
+				var thisDeck = parseAndSetProto(t.players);
 				thisDeck.players.forEach(function(player){
 					if (player.name != "dealer"){
 						if (player.bet == 0){
@@ -555,7 +748,6 @@ module.exports = function(app, io){
 				else{
 					if (req.session.passport.user){
 						User.findOne({ UID: req.session.passport.user }, function(err, user){
-							thisDeck.__proto__ = deck_of_cards.__proto__;
 							thisDeck.assignCard();
 							t.players = JSON.stringify(thisDeck);
 							t.save(function(err, t){
@@ -568,6 +760,8 @@ module.exports = function(app, io){
 										showMessage: true,
 										dealer: thisDeck.players[0],
 										first_player: thisDeck.players[1],
+										cardSpot: thisDeck.cardSpot,
+										betSpot: thisDeck.betSpot,
 										showUser: true,
 										user: user.username,
 										ID: req.session.passport.user
@@ -583,6 +777,8 @@ module.exports = function(app, io){
 										dealer: thisDeck.players[0],
 										first_player: thisDeck.players[1],
 										second_player: thisDeck.players[2],
+										cardSpot: thisDeck.cardSpot,
+										betSpot: thisDeck.betSpot,
 										showUser: true,
 										user: user.username,
 										ID: req.session.passport.user
@@ -599,6 +795,8 @@ module.exports = function(app, io){
 										first_player: thisDeck.players[1],
 										second_player: thisDeck.players[2],
 										third_player: thisDeck.players[3],
+										cardSpot: thisDeck.cardSpot,
+										betSpot: thisDeck.betSpot,
 										showUser: true,
 										user: user.username,
 										ID: req.session.passport.user
@@ -608,7 +806,6 @@ module.exports = function(app, io){
 						});
 					}
 					else{
-						thisDeck.__proto__ = deck_of_cards.__proto__;
 						thisDeck.assignCard();
 						t.players = JSON.stringify(thisDeck);
 						t.save(function(err, t){
@@ -620,7 +817,9 @@ module.exports = function(app, io){
 									table_code: t._id.toString(), 
 									showMessage: true,
 									dealer: thisDeck.players[0],
-									first_player: thisDeck.players[1]
+									first_player: thisDeck.players[1],
+									cardSpot: thisDeck.cardSpot,
+									betSpot: thisDeck.betSpot	
 								 });
 							}
 							else if (thisDeck.players.length == 3){
@@ -632,7 +831,9 @@ module.exports = function(app, io){
 									showMessage: true,
 									dealer: thisDeck.players[0],
 									first_player: thisDeck.players[1],
-									second_player: thisDeck.players[2]
+									second_player: thisDeck.players[2],
+									cardSpot: thisDeck.cardSpot,
+									betSpot: thisDeck.betSpot
 								 });
 							}
 							else if (thisDeck.players.length == 4){
@@ -645,7 +846,9 @@ module.exports = function(app, io){
 									dealer: thisDeck.players[0],
 									first_player: thisDeck.players[1],
 									second_player: thisDeck.players[2],
-									third_player: thisDeck.players[3]
+									third_player: thisDeck.players[3],
+									cardSpot: thisDeck.cardSpot,
+									betSpot: thisDeck.betSpot
 								 });
 							}
 						});	
@@ -662,10 +865,9 @@ module.exports = function(app, io){
 	app.get('/hold/:table_code', function(req, res){
 		Table.findOne({ _id: req.params.table_code }).exec(function(err, t){
 			if (!err){
-				var thisDeck = JSON.parse(t.players);
+				var thisDeck = parseAndSetProto(t.players);
 				if (req.session.passport.user){
 					User.findOne({ UID: req.session.passport.user }, function(err, user){
-						thisDeck.__proto__ = deck_of_cards.__proto__;
 						thisDeck.hold();
 						t.players = JSON.stringify(thisDeck);
 						t.save(function(err, t){
@@ -678,6 +880,8 @@ module.exports = function(app, io){
 									showMessage: true,
 									dealer: thisDeck.players[0],
 									first_player: thisDeck.players[1],
+									cardSpot: thisDeck.cardSpot,
+									betSpot: thisDeck.betSpot,
 									showUser: true,
 									user: user.username,
 									ID: req.session.passport.user
@@ -693,6 +897,8 @@ module.exports = function(app, io){
 									dealer: thisDeck.players[0],
 									first_player: thisDeck.players[1],
 									second_player: thisDeck.players[2],
+									cardSpot: thisDeck.cardSpot,
+									betSpot: thisDeck.betSpot,
 									showUser: true,
 									user: user.username,
 									ID: req.session.passport.user
@@ -709,6 +915,8 @@ module.exports = function(app, io){
 									first_player: thisDeck.players[1],
 									second_player: thisDeck.players[2],
 									third_player: thisDeck.players[3],
+									cardSpot: thisDeck.cardSpot,
+									betSpot: thisDeck.betSpot,
 									showUser: true,
 									user: user.username,
 									ID: req.session.passport.user
@@ -718,7 +926,6 @@ module.exports = function(app, io){
 					});
 				}
 				else{
-					thisDeck.__proto__ = deck_of_cards.__proto__;
 					thisDeck.hold();
 					t.players = JSON.stringify(thisDeck);
 					t.save(function(err, t){
@@ -730,7 +937,9 @@ module.exports = function(app, io){
 								table_code: t._id.toString(), 
 								showMessage: true,
 								dealer: thisDeck.players[0],
-								first_player: thisDeck.players[1]
+								first_player: thisDeck.players[1],
+								cardSpot: thisDeck.cardSpot,
+								betSpot: thisDeck.betSpot
 							 });
 						}
 						else if (thisDeck.players.length == 3){
@@ -742,7 +951,9 @@ module.exports = function(app, io){
 								showMessage: true,
 								dealer: thisDeck.players[0],
 								first_player: thisDeck.players[1],
-								second_player: thisDeck.players[2]
+								second_player: thisDeck.players[2],
+								cardSpot: thisDeck.cardSpot,
+								betSpot: thisDeck.betSpot
 							 });
 						}
 						else if (thisDeck.players.length == 4){
@@ -755,7 +966,9 @@ module.exports = function(app, io){
 								dealer: thisDeck.players[0],
 								first_player: thisDeck.players[1],
 								second_player: thisDeck.players[2],
-								third_player: thisDeck.players[3]
+								third_player: thisDeck.players[3],
+								cardSpot: thisDeck.cardSpot,
+								betSpot: thisDeck.betSpot
 							});
 						}
 					});
@@ -768,8 +981,7 @@ module.exports = function(app, io){
 	app.get('/double_down/:table_code', function(req, res){
 		Table.findOne({ _id: req.params.table_code }).exec(function(err, t){
 			if (!err){
-					var thisDeck = JSON.parse(t.players);
-					thisDeck.__proto__ = deck_of_cards.__proto__;
+					var thisDeck = parseAndSetProto(table.players);
 					thisDeck.doubleDown();
 					t.players = JSON.stringify(thisDeck);
 					t.save(function(err, t){
