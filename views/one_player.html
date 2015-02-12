@@ -45,7 +45,7 @@
               {% else %}
                 <a href="/deal/{{table_code}}" class='btn btn-xs' style='background-color: red !important;'>Hit</a>
                 <a href="/hold/{{table_code}}" class='btn btn-xs' style='background-color: red !important;'>Hold</a>
-                <a href="/double_down/{{table_code}}" class='btn btn-xs' style='background-color: red !important;'>Double Down</a>
+                <a href="/double_down/{{table_code}}/{{first_player.player_id}}" class='btn btn-xs' style='background-color: red !important;'>Double Down</a>
               {% endif %}
                 <a href="/leave/{{table_code}}/{{first_player.playerNum}}" class="btn btn-xs" style='background-color: red !important;'>Leave Table</a>
               </div>

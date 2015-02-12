@@ -8,6 +8,7 @@ var socketio = require('socket.io');
 var passport = require('passport');
 var LocalStrategy = require('passport-local').Strategy;
 var session = require('express-session');
+var uuid = require('node-uuid');
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
@@ -15,6 +16,9 @@ app.use(morgan('dev'));
 app.use(express.static('public'));
 app.use("/images", express.static(__dirname + '/images'));
 app.use(session({ 
+	genid: function(req){
+		return uuid.v4();
+	},
 	resave: false,
 	saveUninitialized: true,
 	secret: "blackjack" }));

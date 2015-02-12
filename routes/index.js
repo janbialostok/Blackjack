@@ -57,8 +57,8 @@ module.exports = function(app, io){
 		return thisDeck;
 	}
 
-	var renderDeck = function(error, deck, table, res, session, user, id){
-		if (session && !error){
+	var renderDeck = function(error, deck, table, res, signedIn, user, id){
+		if (signedIn && !error){
 			if (deck.players.length == 2){
 				res.render('one_player', { totalCards: deck.totalCards, 
 					showDeck: true, 
@@ -111,7 +111,7 @@ module.exports = function(app, io){
 				});
 			}
 		}
-		else if (!session && !error){
+		else if (!signedIn && !error){
 			if (deck.players.length == 2){
 				res.render('one_player', { totalCards: deck.totalCards, 
 					showDeck: true, 
@@ -188,7 +188,8 @@ module.exports = function(app, io){
 			Table.findOne({ _id: req.body.table_code }, function(err, table){
 				if (!err){
 					var thisDeck = parseAndSetProto(table.players);
-					thisDeck.addPlayer(req.body.name);
+					var hash = SHA256(req.body.name);
+					thisDeck.addPlayer(req.body.name, hash.toString(crypto.enc.Hex));
 					table.players = JSON.stringify(thisDeck);
 					table.save(function(err, t){
 						renderDeck(err, thisDeck, t, res, false);
@@ -200,139 +201,6 @@ module.exports = function(app, io){
 			});
 		}
 	});
-	
-	// app.post('/join_table', function(req, res){
-	// 	if (req.session.passport.user){
-	// 		User.findOne({ UID: req.session.passport.user }, function(err, user){
-	// 			if (!err){
-	// 				Table.findOne({ _id: req.body.table_code }, function(err, table){
-	// 					if (!err){
-	// 						var thisDeck = parseAndSetProto(table.players);
-	// 						thisDeck.addPlayer(user.username, user.UID);
-	// 						thisDeck.players[Number(req.body.player)].funds = user.bank;
-	// 						table.players = JSON.stringify(thisDeck);
-	// 						table.save(function(err, t){
-	// 							if (thisDeck.players.length == 2){
-	// 								res.render('one_player', { totalCards: thisDeck.totalCards, 
-	// 									showDeck: true, 
-	// 									players: thisDeck.players, 
-	// 									message: t.name, 
-	// 									table_code: t._id.toString(), 
-	// 									showMessage: true,
-	// 									dealer: thisDeck.players[0],
-	// 									first_player: thisDeck.players[1],
-	// 									cardSpot: thisDeck.cardSpot,
-	// 									betSpot: thisDeck.betSpot,
-	// 									showUser: true,
-	// 									user: user.username,
-	// 									ID: req.session.passport.user
-	// 								 });
-	// 							}
-	// 							else if (thisDeck.players.length == 3){
-	// 								res.render('two_player', { totalCards: thisDeck.totalCards, 
-	// 									showDeck: true, 
-	// 									players: thisDeck.players, 
-	// 									message: t.name, 
-	// 									table_code: t._id.toString(), 
-	// 									showMessage: true,
-	// 									dealer: thisDeck.players[0],
-	// 									first_player: thisDeck.players[1],
-	// 									second_player: thisDeck.players[2],
-	// 									cardSpot: thisDeck.cardSpot,
-	// 									betSpot: thisDeck.betSpot,
-	// 									showUser: true,
-	// 									user: user.username,
-	// 									ID: req.session.passport.user
-	// 								 });
-	// 							}
-	// 							else if (thisDeck.players.length == 4){
-	// 								res.render('three_player', { totalCards: thisDeck.totalCards, 
-	// 									showDeck: true, 
-	// 									players: thisDeck.players, 
-	// 									message: t.name, 
-	// 									table_code: t._id.toString(), 
-	// 									showMessage: true,
-	// 									dealer: thisDeck.players[0],
-	// 									first_player: thisDeck.players[1],
-	// 									second_player: thisDeck.players[2],
-	// 									third_player: thisDeck.players[3],
-	// 									cardSpot: thisDeck.cardSpot,
-	// 									betSpot: thisDeck.betSpot,
-	// 									showUser: true,
-	// 									user: user.username,
-	// 									ID: req.session.passport.user
-	// 								});
-	// 							}
-	// 						});
-	// 					}
-	// 					else{	
-	// 						res.send(err);
-	// 					}
-	// 				});
-	// 			}
-	// 			else{	
-	// 				res.send(err);
-	// 			}
-	// 		});
-	// 	}
-	// 	else{
-	// 		Table.findOne({ _id: req.body.table_code }, function(err, table){
-	// 			if (!err){
-	// 				var thisDeck = parseAndSetProto(table.players);
-	// 				thisDeck.addPlayer(req.body.name);
-	// 				table.players = JSON.stringify(thisDeck);
-	// 				table.save(function(err, t){
-	// 					if (thisDeck.players.length == 2){
-	// 						res.render('one_player', { totalCards: thisDeck.totalCards, 
-	// 							showDeck: true, 
-	// 							players: thisDeck.players, 
-	// 							message: t.name, 
-	// 							table_code: t._id.toString(), 
-	// 							showMessage: true,
-	// 							dealer: thisDeck.players[0],
-	// 							first_player: thisDeck.players[1],
-	// 							cardSpot: thisDeck.cardSpot,
-	// 							betSpot: thisDeck.betSpot
-	// 						 });
-	// 					}
-	// 					else if (thisDeck.players.length == 3){
-	// 						res.render('two_player', { totalCards: thisDeck.totalCards, 
-	// 							showDeck: true, 
-	// 							players: thisDeck.players, 
-	// 							message: t.name, 
-	// 							table_code: t._id.toString(), 
-	// 							showMessage: true,
-	// 							dealer: thisDeck.players[0],
-	// 							first_player: thisDeck.players[1],
-	// 							second_player: thisDeck.players[2],
-	// 							cardSpot: thisDeck.cardSpot,
-	// 							betSpot: thisDeck.betSpot
-	// 						 });
-	// 					}
-	// 					else if (thisDeck.players.length == 4){
-	// 						res.render('three_player', { totalCards: thisDeck.totalCards, 
-	// 							showDeck: true, 
-	// 							players: thisDeck.players, 
-	// 							message: t.name, 
-	// 							table_code: t._id.toString(), 
-	// 							showMessage: true,
-	// 							dealer: thisDeck.players[0],
-	// 							first_player: thisDeck.players[1],
-	// 							second_player: thisDeck.players[2],
-	// 							third_player: thisDeck.players[3],
-	// 							cardSpot: thisDeck.cardSpot,
-	// 							betSpot: thisDeck.betSpot
-	// 						});
-	// 					}
-	// 				});
-	// 			}
-	// 			else{
-	// 				res.send(err);
-	// 			}
-
-	// 		});
-	// 	}
-	// });
 
 	app.get('/leave/:table_code/:number', function(req, res){
 		Table.findOne({ _id: req.params.table_code }, function(err, table){
@@ -419,15 +287,18 @@ module.exports = function(app, io){
 				deck_of_cards.players[1].funds = req.user[0].bank;
 			}
 			else{
-				deck_of_cards.addPlayer(req.body.first_player);
+				var hash = SHA256(req.body.first_player);
+				deck_of_cards.addPlayer(req.body.first_player, hash.toString(crypto.enc.Hex) + "!1");
 			}
 
 		}
 		if (req.body.second_player.trim() != undefined && req.body.second_player.trim() != ""){
-			deck_of_cards.addPlayer(req.body.second_player);
+			var two_hash = SHA256(req.body.second_player);
+			deck_of_cards.addPlayer(req.body.second_player, two_hash.toString(crypto.enc.Hex) + "!2");
 		}
 		if (req.body.third_player.trim() != undefined && req.body.third_player.trim() != ""){
-			deck_of_cards.addPlayer(req.body.third_player);
+			var three_hash = SHA256(req.body.third_player);
+			deck_of_cards.addPlayer(req.body.third_player, three_hash.toString(cryptoJS.enc.Hex) + "!3");
 		}
 		var new_table;
 		var full_route;
@@ -450,102 +321,11 @@ module.exports = function(app, io){
 				var objDeck = JSON.parse(t.players);
 				if (req.session.passport.user){
 					User.findOne({ UID: req.session.passport.user }, function(err, user){
-						if (objDeck.players.length == 2){
-							res.render('one_player', { totalCards: objDeck.totalCards, 
-								showDeck: true, 
-								players: objDeck.players, 
-								message: "Welcome to table " + t.name, 
-								table_code: t._id.toString(), 
-								showMessage: true,
-								dealer: objDeck.players[0],
-								first_player: objDeck.players[1],
-								cardSpot: objDeck.cardSpot,
-								betSpot: objDeck.betSpot,
-								showUser: true, 
-								user: user.username,
-								ID: req.session.passport.user
-							});
-						}
-						else if (objDeck.players.length == 3){
-							res.render('two_player', { totalCards: objDeck.totalCards, 
-								showDeck: true, 
-								players: objDeck.players, 
-								message: "Welcome to table " + t.name, 
-								table_code: t._id.toString(), 
-								showMessage: true,
-								dealer: objDeck.players[0],
-								first_player: objDeck.players[1],
-								second_player: objDeck.players[2],
-								cardSpot: objDeck.cardSpot,
-								betSpot: objDeck.betSpot,
-								showUser: true, 
-								user: user.username,
-								ID: req.session.passport.user
-							});
-						}
-						else if (objDeck.players.length == 4){
-							res.render('three_player', { totalCards: objDeck.totalCards, 
-								showDeck: true, 
-								players: objDeck.players, 
-								message: "Welcome to table " + t.name, 
-								table_code: t._id.toString(), 
-								showMessage: true,
-								dealer: objDeck.players[0],
-								first_player: objDeck.players[1],
-								second_player: objDeck.players[2],
-								third_player: objDeck.players[3],
-								cardSpot: objDeck.cardSpot,
-								betSpot: objDeck.betSpot,
-								showUser: true, 
-								user: user.username,
-								ID: req.session.passport.user
-							});
-						}
+						renderDeck(err, objDeck, t, res, true, user, req.session.passport.user);
 					});
 				}
 				else{
-					if (objDeck.players.length == 2){
-						res.render('one_player', { totalCards: objDeck.totalCards, 
-							showDeck: true, 
-							players: objDeck.players, 
-							message: "Welcome to table " + t.name, 
-							table_code: t._id.toString(), 
-							showMessage: true,
-							dealer: objDeck.players[0],
-							first_player: objDeck.players[1],
-							cardSpot: objDeck.cardSpot,
-							betSpot: objDeck.betSpot
-						});
-					}
-					else if (objDeck.players.length == 3){
-						res.render('two_player', { totalCards: objDeck.totalCards, 
-							showDeck: true, 
-							players: objDeck.players, 
-							message: "Welcome to table " + t.name, 
-							table_code: t._id.toString(), 
-							showMessage: true,
-							dealer: objDeck.players[0],
-							first_player: objDeck.players[1],
-							second_player: objDeck.players[2],
-							cardSpot: objDeck.cardSpot,
-							betSpot: objDeck.betSpot
-						});
-					}
-					else if (objDeck.players.length == 4){
-						res.render('three_player', { totalCards: objDeck.totalCards, 
-							showDeck: true, 
-							players: objDeck.players, 
-							message: "Welcome to table " + t.name, 
-							table_code: t._id.toString(), 
-							showMessage: true,
-							dealer: objDeck.players[0],
-							first_player: objDeck.players[1],
-							second_player: objDeck.players[2],
-							third_player: objDeck.players[3],
-							cardSpot: objDeck.cardSpot,
-							betSpot: objDeck.betSpot
-						});
-					}
+					renderDeck(err, objDeck, t, res, false);
 				}
 			}
 			else{
@@ -569,157 +349,16 @@ module.exports = function(app, io){
 							if (req.session.passport.user == betId){
 								user.bank = thisDeck.players[playerSpot].funds;
 								user.save(function(err, u){
-									if (thisDeck.players.length == 2){
-										res.render('one_player', { totalCards: thisDeck.totalCards, 
-											showDeck: true, 
-											players: thisDeck.players, 
-											message: t.name, 
-											table_code: t._id.toString(), 
-											showMessage: true,
-											dealer: thisDeck.players[0],
-											first_player: thisDeck.players[1],
-											cardSpot: thisDeck.cardSpot,
-											betSpot: thisDeck.betSpot,
-											showUser: true,
-											user: user.username,
-											ID: req.session.passport.user
-										 });
-									}
-									else if (thisDeck.players.length == 3){
-										res.render('two_player', { totalCards: thisDeck.totalCards, 
-											showDeck: true, 
-											players: thisDeck.players, 
-											message: t.name, 
-											table_code: t._id.toString(), 
-											showMessage: true,
-											dealer: thisDeck.players[0],
-											first_player: thisDeck.players[1],
-											second_player: thisDeck.players[2],
-											cardSpot: thisDeck.cardSpot,
-											betSpot: thisDeck.betSpot,
-											showUser: true,
-											user: user.username,
-											ID: req.session.passport.user
-										 });
-									}
-									else if (thisDeck.players.length == 4){
-										res.render('three_player', { totalCards: thisDeck.totalCards, 
-											showDeck: true, 
-											players: thisDeck.players, 
-											message: t.name, 
-											table_code: t._id.toString(), 
-											showMessage: true,
-											dealer: thisDeck.players[0],
-											first_player: thisDeck.players[1],
-											second_player: thisDeck.players[2],
-											third_player: thisDeck.players[3],
-											cardSpot: thisDeck.cardSpot,
-											betSpot: thisDeck.betSpot,
-											showUser: true,
-											user: user.username,
-											ID: req.session.passport.user
-										});
-									}
+									renderDeck(err, thisDeck, t, res, true, user, req.session.passport.user);
 								});
 							}
 							else{
-								if (thisDeck.players.length == 2){
-									res.render('one_player', { totalCards: thisDeck.totalCards, 
-										showDeck: true, 
-										players: thisDeck.players, 
-										message: t.name, 
-										table_code: t._id.toString(), 
-										showMessage: true,
-										dealer: thisDeck.players[0],
-										first_player: thisDeck.players[1],
-										cardSpot: thisDeck.cardSpot,
-										betSpot: thisDeck.betSpot,
-										showUser: true,
-										user: user.username,
-										ID: req.session.passport.user
-									 });
-								}
-								else if (thisDeck.players.length == 3){
-									res.render('two_player', { totalCards: thisDeck.totalCards, 
-										showDeck: true, 
-										players: thisDeck.players, 
-										message: t.name, 
-										table_code: t._id.toString(), 
-										showMessage: true,
-										dealer: thisDeck.players[0],
-										first_player: thisDeck.players[1],
-										second_player: thisDeck.players[2],
-										cardSpot: thisDeck.cardSpot,
-										betSpot: thisDeck.betSpot,
-										showUser: true,
-										user: user.username,
-										ID: req.session.passport.user
-									 });
-								}
-								else if (thisDeck.players.length == 4){
-									res.render('three_player', { totalCards: thisDeck.totalCards, 
-										showDeck: true, 
-										players: thisDeck.players, 
-										message: t.name, 
-										table_code: t._id.toString(), 
-										showMessage: true,
-										dealer: thisDeck.players[0],
-										first_player: thisDeck.players[1],
-										second_player: thisDeck.players[2],
-										third_player: thisDeck.players[3],
-										cardSpot: thisDeck.cardSpot,
-										betSpot: thisDeck.betSpot,
-										showUser: true,
-										user: user.username,
-										ID: req.session.passport.user
-									});
-								}
+								renderDeck(err, thisDeck, t, res, true, user, req.session.passport.user);
 							}
 						});
 					}
 					else{
-						if (thisDeck.players.length == 2){
-							res.render('one_player', { totalCards: thisDeck.totalCards, 
-								showDeck: true, 
-								players: thisDeck.players, 
-								message: t.name, 
-								table_code: t._id.toString(), 
-								showMessage: true,
-								dealer: thisDeck.players[0],
-								first_player: thisDeck.players[1],
-								cardSpot: thisDeck.cardSpot,
-								betSpot: thisDeck.betSpot
-							 });
-						}
-						else if (thisDeck.players.length == 3){
-							res.render('two_player', { totalCards: thisDeck.totalCards, 
-								showDeck: true, 
-								players: thisDeck.players, 
-								message: t.name, 
-								table_code: t._id.toString(), 
-								showMessage: true,
-								dealer: thisDeck.players[0],
-								first_player: thisDeck.players[1],
-								second_player: thisDeck.players[2],
-								cardSpot: thisDeck.cardSpot,
-								betSpot: thisDeck.betSpot
-							 });
-						}
-						else if (thisDeck.players.length == 4){
-							res.render('three_player', { totalCards: thisDeck.totalCards, 
-								showDeck: true, 
-								players: thisDeck.players, 
-								message: t.name, 
-								table_code: t._id.toString(), 
-								showMessage: true,
-								dealer: thisDeck.players[0],
-								first_player: thisDeck.players[1],
-								second_player: thisDeck.players[2],
-								third_player: thisDeck.players[3],
-								cardSpot: thisDeck.cardSpot,
-								betSpot: thisDeck.betSpot
-							});
-						}
+						renderDeck(err, thisDeck, t, res, false);
 					}
 				});
 			}
@@ -751,57 +390,7 @@ module.exports = function(app, io){
 							thisDeck.assignCard();
 							t.players = JSON.stringify(thisDeck);
 							t.save(function(err, t){
-								if (thisDeck.players.length == 2){
-									res.render('one_player', { totalCards: thisDeck.totalCards, 
-										showDeck: true, 
-										players: thisDeck.players, 
-										message: t.name, 
-										table_code: t._id.toString(), 
-										showMessage: true,
-										dealer: thisDeck.players[0],
-										first_player: thisDeck.players[1],
-										cardSpot: thisDeck.cardSpot,
-										betSpot: thisDeck.betSpot,
-										showUser: true,
-										user: user.username,
-										ID: req.session.passport.user
-									 });
-								}
-								else if (thisDeck.players.length == 3){
-									res.render('two_player', { totalCards: thisDeck.totalCards, 
-										showDeck: true, 
-										players: thisDeck.players, 
-										message: t.name, 
-										table_code: t._id.toString(), 
-										showMessage: true,
-										dealer: thisDeck.players[0],
-										first_player: thisDeck.players[1],
-										second_player: thisDeck.players[2],
-										cardSpot: thisDeck.cardSpot,
-										betSpot: thisDeck.betSpot,
-										showUser: true,
-										user: user.username,
-										ID: req.session.passport.user
-									 });
-								}
-								else if (thisDeck.players.length == 4){
-									res.render('three_player', { totalCards: thisDeck.totalCards, 
-										showDeck: true, 
-										players: thisDeck.players, 
-										message: t.name, 
-										table_code: t._id.toString(), 
-										showMessage: true,
-										dealer: thisDeck.players[0],
-										first_player: thisDeck.players[1],
-										second_player: thisDeck.players[2],
-										third_player: thisDeck.players[3],
-										cardSpot: thisDeck.cardSpot,
-										betSpot: thisDeck.betSpot,
-										showUser: true,
-										user: user.username,
-										ID: req.session.passport.user
-									 });
-								}
+								renderDeck(err, thisDeck, t, res, true, user, req.session.passport.user);
 							});
 						});
 					}
@@ -809,48 +398,7 @@ module.exports = function(app, io){
 						thisDeck.assignCard();
 						t.players = JSON.stringify(thisDeck);
 						t.save(function(err, t){
-							if (thisDeck.players.length == 2){
-								res.render('one_player', { totalCards: thisDeck.totalCards, 
-									showDeck: true, 
-									players: thisDeck.players, 
-									message: t.name, 
-									table_code: t._id.toString(), 
-									showMessage: true,
-									dealer: thisDeck.players[0],
-									first_player: thisDeck.players[1],
-									cardSpot: thisDeck.cardSpot,
-									betSpot: thisDeck.betSpot	
-								 });
-							}
-							else if (thisDeck.players.length == 3){
-								res.render('two_player', { totalCards: thisDeck.totalCards, 
-									showDeck: true, 
-									players: thisDeck.players, 
-									message: t.name, 
-									table_code: t._id.toString(), 
-									showMessage: true,
-									dealer: thisDeck.players[0],
-									first_player: thisDeck.players[1],
-									second_player: thisDeck.players[2],
-									cardSpot: thisDeck.cardSpot,
-									betSpot: thisDeck.betSpot
-								 });
-							}
-							else if (thisDeck.players.length == 4){
-								res.render('three_player', { totalCards: thisDeck.totalCards, 
-									showDeck: true, 
-									players: thisDeck.players, 
-									message: t.name, 
-									table_code: t._id.toString(), 
-									showMessage: true,
-									dealer: thisDeck.players[0],
-									first_player: thisDeck.players[1],
-									second_player: thisDeck.players[2],
-									third_player: thisDeck.players[3],
-									cardSpot: thisDeck.cardSpot,
-									betSpot: thisDeck.betSpot
-								 });
-							}
+							renderDeck(err, thisDeck, t, res, false);
 						});	
 					}
 				}
@@ -871,57 +419,7 @@ module.exports = function(app, io){
 						thisDeck.hold();
 						t.players = JSON.stringify(thisDeck);
 						t.save(function(err, t){
-							if (thisDeck.players.length == 2){
-								res.render('one_player', { totalCards: thisDeck.totalCards, 
-									showDeck: true, 
-									players: thisDeck.players, 
-									message: t.name, 
-									table_code: t._id.toString(), 
-									showMessage: true,
-									dealer: thisDeck.players[0],
-									first_player: thisDeck.players[1],
-									cardSpot: thisDeck.cardSpot,
-									betSpot: thisDeck.betSpot,
-									showUser: true,
-									user: user.username,
-									ID: req.session.passport.user
-								 });
-							}
-							else if (thisDeck.players.length == 3){
-								res.render('two_player', { totalCards: thisDeck.totalCards, 
-									showDeck: true, 
-									players: thisDeck.players, 
-									message: t.name, 
-									table_code: t._id.toString(), 
-									showMessage: true,
-									dealer: thisDeck.players[0],
-									first_player: thisDeck.players[1],
-									second_player: thisDeck.players[2],
-									cardSpot: thisDeck.cardSpot,
-									betSpot: thisDeck.betSpot,
-									showUser: true,
-									user: user.username,
-									ID: req.session.passport.user
-								 });
-							}
-							else if (thisDeck.players.length == 4){
-								res.render('three_player', { totalCards: thisDeck.totalCards, 
-									showDeck: true, 
-									players: thisDeck.players, 
-									message: t.name, 
-									table_code: t._id.toString(), 
-									showMessage: true,
-									dealer: thisDeck.players[0],
-									first_player: thisDeck.players[1],
-									second_player: thisDeck.players[2],
-									third_player: thisDeck.players[3],
-									cardSpot: thisDeck.cardSpot,
-									betSpot: thisDeck.betSpot,
-									showUser: true,
-									user: user.username,
-									ID: req.session.passport.user
-								});
-							}
+							renderDeck(err, thisDeck, t, res, true, user, req.session.passport.user);
 						});
 					});
 				}
@@ -929,48 +427,7 @@ module.exports = function(app, io){
 					thisDeck.hold();
 					t.players = JSON.stringify(thisDeck);
 					t.save(function(err, t){
-						if (thisDeck.players.length == 2){
-							res.render('one_player', { totalCards: thisDeck.totalCards, 
-								showDeck: true, 
-								players: thisDeck.players, 
-								message: t.name, 
-								table_code: t._id.toString(), 
-								showMessage: true,
-								dealer: thisDeck.players[0],
-								first_player: thisDeck.players[1],
-								cardSpot: thisDeck.cardSpot,
-								betSpot: thisDeck.betSpot
-							 });
-						}
-						else if (thisDeck.players.length == 3){
-							res.render('two_player', { totalCards: thisDeck.totalCards, 
-								showDeck: true, 
-								players: thisDeck.players, 
-								message: t.name, 
-								table_code: t._id.toString(), 
-								showMessage: true,
-								dealer: thisDeck.players[0],
-								first_player: thisDeck.players[1],
-								second_player: thisDeck.players[2],
-								cardSpot: thisDeck.cardSpot,
-								betSpot: thisDeck.betSpot
-							 });
-						}
-						else if (thisDeck.players.length == 4){
-							res.render('three_player', { totalCards: thisDeck.totalCards, 
-								showDeck: true, 
-								players: thisDeck.players, 
-								message: t.name, 
-								table_code: t._id.toString(), 
-								showMessage: true,
-								dealer: thisDeck.players[0],
-								first_player: thisDeck.players[1],
-								second_player: thisDeck.players[2],
-								third_player: thisDeck.players[3],
-								cardSpot: thisDeck.cardSpot,
-								betSpot: thisDeck.betSpot
-							});
-						}
+						renderDeck(err, thisDeck, t, res, false);
 					});
 				}		
 			}
@@ -978,56 +435,50 @@ module.exports = function(app, io){
 	});
 	
 
-	app.get('/double_down/:table_code', function(req, res){
+	app.get('/double_down/:table_code/:player_code', function(req, res){
 		Table.findOne({ _id: req.params.table_code }).exec(function(err, t){
+			var thisDeck = parseAndSetProto(t.players);
+			thisDeck.doubleDown();
+			var playerSpot = thisDeck.cardSpot - 1;
+			var betId = req.params.player_code;
 			if (!err){
-					var thisDeck = parseAndSetProto(table.players);
-					thisDeck.doubleDown();
-					t.players = JSON.stringify(thisDeck);
-					t.save(function(err, t){
-						if (thisDeck.players.length == 2){
-							res.render('one_player', { totalCards: thisDeck.totalCards, 
-								showDeck: true, 
-								players: thisDeck.players, 
-								message: t.name, 
-								table_code: t._id.toString(), 
-								showMessage: true,
-								dealer: thisDeck.players[0],
-								first_player: thisDeck.players[1]
-							 });
+				if (req.session.passport.user){
+					User.findOne({ UID: req.session.passport.user }, function(err, user){
+						if (req.session.passport.user == betId){
+							user.bank = thisDeck.players[playerSpot].funds;
+							user.save(function(err, u){
+								t.players = JSON.stringify(thisDeck);
+								t.save(function(err, table){
+									renderDeck(err, thisDeck, table, res, true, user, req.session.passport.user);
+								});
+							});
 						}
-						else if (thisDeck.players.length == 3){
-							res.render('two_player', { totalCards: thisDeck.totalCards, 
-								showDeck: true, 
-								players: thisDeck.players, 
-								message: t.name, 
-								table_code: t._id.toString(), 
-								showMessage: true,
-								dealer: thisDeck.players[0],
-								first_player: thisDeck.players[1],
-								second_player: thisDeck.players[2]
-							 });
-						}
-						else if (thisDeck.players.length == 4){
-							res.render('three_player', { totalCards: thisDeck.totalCards, 
-								showDeck: true, 
-								players: thisDeck.players, 
-								message: t.name, 
-								table_code: t._id.toString(), 
-								showMessage: true,
-								dealer: thisDeck.players[0],
-								first_player: thisDeck.players[1],
-								second_player: thisDeck.players[2],
-								third_player: thisDeck.players[3]
-							 });
+						else{
+							t.players = JSON.stringify(thisDeck);
+							t.save(function(err, table){
+								renderDeck(err, thisDeck, table, res, true, user, req.session.passport.user);
+							});
 						}
 					});
 				}
+				else{
+					t.players = JSON.stringify(thisDeck);
+					t.save(function(err, t){
+						renderDeck(err, thisDeck, t, res, false);
+					});
+				}
+			}
 		});
 	});
 
 	app.get('/reset', function(req, res){
 		Table.remove({}).exec(function(err){
+			res.redirect('/');
+		});
+	});
+
+	app.get('/resetUsers', function(req, res){
+		User.remove({}).exec(function(err){
 			res.redirect('/');
 		});
 	});
