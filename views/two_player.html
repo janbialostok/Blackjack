@@ -13,10 +13,10 @@
           </div>
           <div class="col-lg-4" id='{{dealer.name}}'>
               <h4>{{dealer.name}}</h4>
-              <div id='{{dealer.name}}shand'>
+              <div class='hand' id='{{dealer.name}}shand'>
                 {{dealer.handsValue}}
               </div>
-              <div class='width:50%;'>
+              <div class='cards' style='width:50%;'>
                 {% for card in dealer.dealer %}
                   <img src="{{card.file}}" style="height:40px;width:30px;">
                 {% endfor %}
@@ -26,7 +26,7 @@
           </div>
         </div>
         <div class="row">
-          <div class="col-lg-4">
+          <div class="col-lg-4" id='thirdPlayerSpot'>
             <div class='form-group'>
               <form action='/join_table' method='POST'>
                   <input type='hidden' name='table_code' value='{{table_code}}'>
@@ -47,7 +47,7 @@
             </div>
           {% endif %}
           </div>
-          <div class='col-lg-4' id='{{first_player.name}}'>
+          <div class='col-lg-4' id='firstPlayerSpot'>
               {% if cardSpot != 1 || betSpot <= players.length - 1 %}
                 <a href="/deal/{{table_code}}" class='btn btn-xs' style='background-color: red !important;' disabled='true'>Hit</a>
                 <a href="/hold/{{table_code}}" class='btn btn-xs' style='background-color: red !important;' disabled='true'>Hold</a>
@@ -60,17 +60,17 @@
                 <a href="/leave/{{table_code}}/{{first_player.playerNum}}" class="btn btn-xs" style='background-color: red !important;'>Leave Table</a>
               <div style='width:50%;'>
                 <h4>{{first_player.name}}</h4>
-                <div id='{{first_player.name}}shand'>
+                <div class='hand' id='firstPlayersHand'>
                   {{first_player.handsValue}}
                 </div>
-                <div id='{{first_player.name}}sbank'>
+                <div id='firstPlayersBank'>
                   {{first_player.funds}}
                 </div>
-                <div id='{{first_player.name}}sbet'>
+                <div id='firstPlayersBet'>
                   {{first_player.bet}}
                 </div>
               </div>
-              <div class='width:50%;'>
+              <div class='cards' style='width:50%;'>
               {% for card in first_player[first_player.playerNum] %}
                 <img src="{{card.file}}" style="height:40px;width:30px;">
               {% endfor %}
@@ -94,7 +94,7 @@
         <div class="row">
           <div class="col-lg-4">
           </div>
-          <div class='col-lg-4' id='{{second_player.name}}'>
+          <div class='col-lg-4' id='secondPlayerSpot'>
               {% if cardSpot != 2 || betSpot <= players.length - 1 %}
                 <a href="/deal/{{table_code}}" class='btn btn-xs' style='background-color: red !important;' disabled='true'>Hit</a>
                 <a href="/hold/{{table_code}}" class='btn btn-xs' style='background-color: red !important;' disabled='true'>Hold</a>
@@ -107,17 +107,17 @@
                 <a href="/leave/{{table_code}}/{{second_player.playerNum}}" class="btn btn-xs" style='background-color: red !important;'>Leave Table</a>
               <div style='width:50%;'>
                 <h4>{{second_player.name}}</h4>
-                <div id='{{second_player.name}}shand'>
+                <div class='hand' id='secondPlayersHand'>
                   {{second_player.handsValue}}
                 </div>
-                <div id='{{second_player.name}}sbank'>
+                <div id='secondPlayersBank'>
                   {{second_player.funds}}
                 </div>
-                <div id='{{second_player.name}}sbet'>
+                <div id='secondPlayersBet'>
                   {{second_player.bet}}
                 </div>
               </div>
-              <div class='width:50%;'>
+              <div class='cards' style='width:50%;'>
               {% for card in second_player[second_player.playerNum] %}
                 <img src="{{card.file}}" style="height:40px;width:30px;">
               {% endfor %}
@@ -141,4 +141,148 @@
           </div>
         </div>
       </div>
+    {% endblock %}
+    {% block scripts %}
+      <script>
+        var socket = io.connect();
+        socket.on('player_joined', function (data) {
+          var $idFinder;
+          if (data.player.playerNum == 2){
+            $idFinder = $("#secondPlayerSpot");
+          }
+          else if (data.player.playerNum == 3){
+            $idFinder = $("#thirdPlayerSpot");
+          }
+        $idFinder.html(""); 
+          var buttonDiv = $("<div style='clear:both'></div>");
+          var hitButton = $("<a href='/deal/" + data.table_code + "' class='btn btn-xs' style='background-color: red !important;' disabled='true'>Hit</a>");
+          var holdButton = $("<a href='/hold/" + data.table_code + "' class='btn btn-xs' style='background-color: red !important;' disabled='true'>Hold</a>");
+          var doubleButton = $("<a href='/double_down/" + data.table_code + "' class='btn btn-xs' style='background-color: red !important;' disabled='true'>Double Down</a>");
+          var leaveButton = $("<a href='/leave/" + data.table_code + "/" + data.player.playerNum + "' class='btn btn-xs' style='background-color: red !important;'>Leave Table</a>");
+          buttonDiv.append(hitButton);
+          buttonDiv.append(holdButton);
+          buttonDiv.append(doubleButton);
+          buttonDiv.append(leaveButton);
+          var playerDiv = $("<div style='width:50%;float:left;display:inline;'></div>");
+          var playerName = $("<h4>" + data.player.name + "</h4>");
+          var playerHand = $("<div>" + data.player.handsValue + "</div>");
+          var playerFund = $("<div>" + data.player.funds + "</div>");
+          var playerBet = $("<div>" + data.player.bet + "</div>");
+         playerDiv.append(playerName);
+         playerDiv.append(playerHand);
+         playerDiv.append(playerFund);
+         playerDiv.append(playerBet);
+         var playerFormDiv = $("<div class='form-group'></div>");
+         var playerForm = $("<form style='form-inline action='/bet' method='POST'></form>");
+         var playerBetActual = $("<input type='number' class='form-control' name-'bet' min='1'>");
+         var betButton = $("<button type='submit' class='btn btn-xs' disabled='true'>Bet</button>");
+         playerForm.append(playerBetActual);
+         playerForm.append(betButton);
+         playerFormDiv.append(playerForm);
+         $idFinder.append(buttonDiv);
+          $idFinder.append(playerDiv);
+          $idFinder.append(playerFormDiv);
+        });
+        socket.on("player_left", function (data){
+          var $idFinder = $("#firstPlayerSpot");
+          if (data.player.playerNum == 2){
+              $idFinder = $("#secondPlayerSpot");
+          }
+          else if (data.player.playerNum == 3){
+            $idFinder = $("#thirdPlayerSpot");
+          }
+
+          if (data.player.playerNum == 1){
+            $idFinder.html("");
+            var secondPlayerContent = $("#secondPlayerSpot").html();
+            $idFinder.html(secondPlayerContent);
+            var thirdPlayerContent = $("#thirdPlayerSpot").html();
+            $("#secondPlayerSpot").html(thirdPlayerContent);
+            var inputs = $("#secondPlayerSpot input")[1];
+            inputs.value = "2";
+            $("#thirdPlayerSpot").html("");
+          }
+          else{
+            $idFinder.html("");
+            var joinForm = $("<form style='form-inline' action='/bet' method='POST'></form>");
+            var tableCode = $("<input type='hidden' name='table_code' value='{{table_code}}'>");
+            var tableSpot = $("<input type='hidden' name='player' value='2'>");
+            joinForm.append(tableCode);
+            joinForm.append(tableSpot);
+            if (!data.session){
+              var label = $("<label for='name'>Enter Name</label>");
+              var nameInput = $("<input type='text' class='form-control' name='name'>");
+              joinForm.append(label);
+              joinForm.append(nameInput);
+            }
+            var joinButton = $("<button type='submit' class='btn btn-primary'>Join Table</button>");
+            joinForm.append(joinButton);
+            $idFinder.append(joinForm);
+            $("#thirdPlayerSpot").html("");
+          }
+        });
+        socket.on("player_bet", function (data){
+          if (data.playerSpot == 1){
+            $("#firstPlayersBet").text(data.bet);
+            var bank = $("#firstPlayersBank").text();
+            bank -= $("#firstPlayersBet").text();
+            $("#firstPlayersBank").text(bank);
+            $("#firstPlayerSpot form button").attr("disabled", true);
+            $("#secondPlayerSpot form button").attr("disabled", false);
+          }
+          else if (data.playerSpot == 2){
+            $("#secondPlayersBet").text(data.bet);
+            var bank = $("#secondPlayersBank").text();
+            bank -= $("#secondPlayersBet").text();
+            $("#secondPlayersBank").text(bank);
+            $("#secondPlayerSpot form button").attr("disabled", true);
+            var anchors = $("#firstPlayerSpot a");
+            for (var i = 0; i < anchors.length; i++){
+              $(anchors[i]).attr("disabled", false);
+            }
+          }
+        }); 
+        socket.on("player_deal", function (data){
+          data.players.forEach(function(player){
+            var $player;
+            if (player.playerNum == 1){
+              $player = $("#firstPlayerSpot");
+            }
+            else if (player.playerNum == 2){
+              $player = $("#secondPlayerSpot");
+            }
+            else{
+              $player = $("#dealer");
+              player.playerNum = "dealer";
+            }
+            $player.find(".hand").text(player.handsValue);
+            $player.find(".cards").html("");
+            
+            player[player.playerNum].forEach(function(card){
+              var cardImg = $("<img src='" + card.file + "' style='height:40px;width:30px;'>");
+              $player.find(".cards").append(cardImg);
+            });
+            console.log(data);
+          });
+        });
+        socket.on("player_hold", function (data){
+          console.log(data);
+          if ((data.thisDeck.cardSpot - 1) == 1){
+            var anchors = $("#firstPlayerSpot a");
+            for (var i = 0; i < anchors.length; i++){
+              $(anchors[i]).attr("disabled", true);
+            }
+            anchors = $("#secondPlayerSpot a");
+            for (var i = 0; i < anchors.length; i++){
+              $(anchors[i]).attr("disabled", false);
+            }
+          }
+          else if ((data.thisDeck.cardSpot - 1) == 2){
+            anchors = $("#secondPlayerSpot a");
+            for (var i = 0; i < anchors.length; i++){
+              $(anchors[i]).attr("disabled", true);
+            }
+          }
+        });
+      </script>
     {% endblock %}

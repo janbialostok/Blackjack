@@ -64,25 +64,19 @@
     {% endblock %}
     </div>
   	<script src="/socket.io/socket.io.js"></script>
+    {% block scripts %}{% endblock %}
     <script>
-      // load the socket.io library above, the connect to the server
-      // because the socket.io server is being run on the same server as your 
-      // express instance, you can connect() without any additional information
-      var socket = io.connect(); // TIP: .connect with no args does auto-discovery
-
-      // when 'new_tweet' events are fired, take our fileobj object and do something with it
-      socket.on('new_tweet', function (new_tweet) { 
-        var mainDiv = '<div class="media" style="cursor:pointer;" onclick="window.location.href = \'/users/' + new_tweet.name + '/tweets/' + new_tweet.id + '\'"></div>';
-        var avatar = '<div class="media-left"><a href="#"><img class="media-object" src="http://www.jammaplus.co.uk/forum/uploads/5237/Paper-Mario-icon.png"></a></div>';
-        var bodyDiv = '<div class="media-body"><h4 class="media-heading"><a href="/users/' + new_tweet.name + '">' + new_tweet.name + '</a></h4><p>' + new_tweet.text + '</p><a href="#">Re-tweet</a></div>'
-
-        mainDiv.append(avatar);
-        mainDiv.append(bodyDiv);
-        $('#tweet-wrapper').append(mainDiv);
-        // console.log(new_tweet);
-        // alert('Refreshing... check the console...');
-        // add logic to load the new tweet
-      }); 
+      socket = io.connect();
+      socket.on("table_created", function (data){
+        console.log(data);
+        if (JSON.parse(data.newTable.players).players.length < 4){
+          var new_table = $("<li>" + data.newTable.name + " currently has " + JSON.parse(data.newTable.players).players.length + " players <a href='" + data.url + "'>Join Now</a><li>"); 
+        }
+        else{
+          var new_table = $("<li>" + data.newTable.name + " currently has " + JSON.parse(data.newTable.players).players.length + " players<li>"); 
+        }
+        $("main ul").append(new_table);
+      });
     </script>
   </body>
 </html>

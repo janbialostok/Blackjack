@@ -6,6 +6,7 @@ var crypto = require("crypto-js");
 var deck = require('../blackjack');
 var Table = require("../models").Table;
 var User = require("../models").User;
+
 module.exports = function(app, io){
 
 	var deck_of_cards = deck.Blackjack();
@@ -171,6 +172,9 @@ module.exports = function(app, io){
 							thisDeck.players[Number(req.body.player)].funds = user.bank;
 							table.players = JSON.stringify(thisDeck);
 							table.save(function(err, t){
+								io.sockets.emit('player_joined', { player: thisDeck.players[thisDeck.players.length - 1], 
+									table_code: req.body.table_code
+								});
 								renderDeck(err, thisDeck, t, res, true, user, req.session.passport.user);
 							});
 						}
@@ -192,6 +196,7 @@ module.exports = function(app, io){
 					thisDeck.addPlayer(req.body.name, hash.toString(crypto.enc.Hex));
 					table.players = JSON.stringify(thisDeck);
 					table.save(function(err, t){
+						io.sockets.emit('player_joined', { player: thisDeck.players[thisDeck.players.length - 1], table_code: req.body.table_code });
 						renderDeck(err, thisDeck, t, res, false);
 					});
 				}
@@ -205,6 +210,7 @@ module.exports = function(app, io){
 	app.get('/leave/:table_code/:number', function(req, res){
 		Table.findOne({ _id: req.params.table_code }, function(err, table){
 			var thisDeck = JSON.parse(table.players);
+			var playerStore = thisDeck.players[req.params.number * 1];
 			if (thisDeck.players[req.params.number * 1].playerNum < (thisDeck.playerTotal - 1)){
 				for (var i = req.params.number * 1; i < (thisDeck.playerTotal - 1); i++){
 					for (var key in thisDeck.players[i]){
@@ -231,6 +237,11 @@ module.exports = function(app, io){
 			else{
 				table.players = JSON.stringify(thisDeck);
 				table.save(function(err, t){
+					var session = req.session.passport.user||undefined;
+					io.sockets.emit('player_left', { player: playerStore, 
+						session: session, 
+						table_code: req.params.table_code 
+					});
 					res.redirect('/');
 				});
 			}
@@ -306,6 +317,7 @@ module.exports = function(app, io){
 		new_table.url = new_table.name.replace(/[\W\s]/g, '_');;
 		new_table.save(function(err, table){
 			if (!err) {
+				io.sockets.emit('table_created', { newTable: table, url: table.url_route });
 				res.redirect(table.url_route);
 			}
 			else{
@@ -349,15 +361,18 @@ module.exports = function(app, io){
 							if (req.session.passport.user == betId){
 								user.bank = thisDeck.players[playerSpot].funds;
 								user.save(function(err, u){
+									io.sockets.emit('player_bet', { bet: req.body.bet, playerSpot: playerSpot });
 									renderDeck(err, thisDeck, t, res, true, user, req.session.passport.user);
 								});
 							}
 							else{
+								io.sockets.emit('player_bet', { bet: req.body.bet, playerSpot: playerSpot });
 								renderDeck(err, thisDeck, t, res, true, user, req.session.passport.user);
 							}
 						});
 					}
 					else{
+						io.sockets.emit('player_bet', { bet: req.body.bet, playerSpot: playerSpot });
 						renderDeck(err, thisDeck, t, res, false);
 					}
 				});
@@ -382,6 +397,7 @@ module.exports = function(app, io){
 					}
 				});
 				if (!betsIn){
+					io.sockets.emit('missing_bets', { message: "Please make sure all players have placed bets!" });
 					res.render('index', { totalCards: thisDeck.totalCards, showDeck: true, showMessage: true, message: "Please make sure all players have placed bets!", players: thisDeck.players, table_code: t.table_code });
 				}
 				else{
@@ -390,6 +406,7 @@ module.exports = function(app, io){
 							thisDeck.assignCard();
 							t.players = JSON.stringify(thisDeck);
 							t.save(function(err, t){
+								io.sockets.emit('player_deal', { cardSpot: thisDeck.cardSpot - 1, players: thisDeck.players });
 								renderDeck(err, thisDeck, t, res, true, user, req.session.passport.user);
 							});
 						});
@@ -398,6 +415,7 @@ module.exports = function(app, io){
 						thisDeck.assignCard();
 						t.players = JSON.stringify(thisDeck);
 						t.save(function(err, t){
+							io.sockets.emit('player_deal', { cardSpot: thisDeck.cardSpot - 1, players: thisDeck.players });
 							renderDeck(err, thisDeck, t, res, false);
 						});	
 					}
@@ -419,6 +437,7 @@ module.exports = function(app, io){
 						thisDeck.hold();
 						t.players = JSON.stringify(thisDeck);
 						t.save(function(err, t){
+							io.sockets.emit('player_hold', { thisDeck: thisDeck });
 							renderDeck(err, thisDeck, t, res, true, user, req.session.passport.user);
 						});
 					});
@@ -427,6 +446,7 @@ module.exports = function(app, io){
 					thisDeck.hold();
 					t.players = JSON.stringify(thisDeck);
 					t.save(function(err, t){
+						io.sockets.emit('player_hold', { thisDeck: thisDeck });
 						renderDeck(err, thisDeck, t, res, false);
 					});
 				}		
@@ -449,6 +469,7 @@ module.exports = function(app, io){
 							user.save(function(err, u){
 								t.players = JSON.stringify(thisDeck);
 								t.save(function(err, table){
+									io.sockets.emit('player_double');
 									renderDeck(err, thisDeck, table, res, true, user, req.session.passport.user);
 								});
 							});
@@ -456,6 +477,7 @@ module.exports = function(app, io){
 						else{
 							t.players = JSON.stringify(thisDeck);
 							t.save(function(err, table){
+								io.sockets.emit('player_double');
 								renderDeck(err, thisDeck, table, res, true, user, req.session.passport.user);
 							});
 						}
@@ -464,6 +486,7 @@ module.exports = function(app, io){
 				else{
 					t.players = JSON.stringify(thisDeck);
 					t.save(function(err, t){
+						io.sockets.emit('player_double');
 						renderDeck(err, thisDeck, t, res, false);
 					});
 				}

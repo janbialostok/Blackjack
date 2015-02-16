@@ -26,7 +26,7 @@
           </div>
         </div>
         <div class="row">
-          <div class="col-lg-4">
+          <div class="col-lg-4" id="thirdPlayerSpot">
           </div>
           <div class="col-lg-4">
           {% if showDeck == true %}
@@ -36,7 +36,7 @@
             </div>
           {% endif %}
           </div>
-          <div class='col-lg-4' id='{{first_player.name}}'>
+          <div class='col-lg-4' id='firstPlayerSpot'>
               <div style="clear:both;">
               {% if cardSpot != 1 || betSpot <= players.length - 1 %}
                 <a href="/deal/{{table_code}}" class='btn btn-xs' style='background-color: red !important;' disabled='true'>Hit</a>
@@ -85,7 +85,7 @@
         <div class="row">
           <div class="col-lg-4">
           </div>
-          <div class="col-lg-4">
+          <div class="col-lg-4" id="secondPlayerSpot">
             <div class='form-group'>
               <form action='/join_table' method='POST'>
                   <input type='hidden' name='table_code' value='{{table_code}}'>
@@ -103,3 +103,46 @@
         </div>
   		</div>
   	{% endblock %}
+    {% block scripts %}
+      <script>
+        var socket = io.connect();
+        socket.on('player_joined', function (data) {
+          var $idFinder;
+          if (data.player.playerNum == 2){
+            $idFinder = $("#secondPlayerSpot");
+          }
+          else if (data.player.playerNum == 3){
+            $idFinder = $("#thirdPlayerSpot");
+          }
+        $idFinder.html(""); 
+          var buttonDiv = $("<div style='clear:both'></div>");
+          var hitButton = $("<a href='/deal/" + data.table_code + "' class='btn btn-xs' style='background-color: red !important;' disabled='true'>Hit</a>");
+          var holdButton = $("<a href='/hold/" + data.table_code + "' class='btn btn-xs' style='background-color: red !important;' disabled='true'>Hold</a>");
+          var doubleButton = $("<a href='/double_down/" + data.table_code + "' class='btn btn-xs' style='background-color: red !important;' disabled='true'>Double Down</a>");
+          var leaveButton = $("<a href='/leave/" + data.table_code + "/" + data.player.playerNum + "' class='btn btn-xs' style='background-color: red !important;'>Leave Table</a>");
+          buttonDiv.append(hitButton);
+          buttonDiv.append(holdButton);
+          buttonDiv.append(doubleButton);
+          buttonDiv.append(leaveButton);
+          var playerDiv = $("<div style='width:50%;float:left;display:inline;'></div>");
+          var playerName = $("<h4>" + data.player.name + "</h4>");
+          var playerHand = $("<div>" + data.player.handsValue + "</div>");
+          var playerFund = $("<div>" + data.player.funds + "</div>");
+          var playerBet = $("<div>" + data.player.bet + "</div>");
+         playerDiv.append(playerName);
+         playerDiv.append(playerHand);
+         playerDiv.append(playerFund);
+         playerDiv.append(playerBet);
+         var playerFormDiv = $("<div class='form-group'></div>");
+         var playerForm = $("<form style='form-inline action='/bet' method='POST'></form>");
+         var playerBetActual = $("<input type='number' class='form-control' name-'bet' min='1'>");
+         var betButton = $("<button type='submit' class='btn btn-xs' disabled='true'>Bet</button>");
+         playerForm.append(playerBetActual);
+         playerForm.append(betButton);
+         playerFormDiv.append(playerForm);
+         $idFinder.append(buttonDiv);
+          $idFinder.append(playerDiv);
+          $idFinder.append(playerFormDiv);
+        }); 
+      </script>
+    {% endblock %}

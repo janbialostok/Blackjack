@@ -26,7 +26,7 @@
           </div>
         </div>
         <div class="row">
-          <div class='col-lg-4' id='{{third_player.name}}'>
+          <div class='col-lg-4' id='thirdPlayerSpot'>
               {% if cardSpot != 3 || betSpot <= players.length - 1 %}
                 <a href="/deal/{{table_code}}" class='btn btn-xs' style='background-color: red !important;' disabled='true'>Hit</a>
                 <a href="/hold/{{table_code}}" class='btn btn-xs' style='background-color: red !important;' disabled='true'>Hold</a>
@@ -77,7 +77,7 @@
             </div>
           {% endif %}
           </div>
-          <div class='col-lg-4' id='{{first_player.name}}'>
+          <div class='col-lg-4' id='firstPlayerSpot'>
               {% if cardSpot != 1 || betSpot <= players.length - 1 %}
                 <a href="/deal/{{table_code}}" class='btn btn-xs' style='background-color: red !important;' disabled='true'>Hit</a>
                 <a href="/hold/{{table_code}}" class='btn btn-xs' style='background-color: red !important;' disabled='true'>Hold</a>
@@ -124,7 +124,7 @@
         <div class="row">
           <div class="col-lg-4">
           </div>
-          <div class='col-lg-4' id='{{second_player.name}}'>
+          <div class='col-lg-4' id='secondPlayerSpot'>
               {% if cardSpot != 2 || betSpot <= players.length - 1 %}
                 <a href="/deal/{{table_code}}" class='btn btn-xs' style='background-color: red !important;' disabled='true'>Hit</a>
                 <a href="/hold/{{table_code}}" class='btn btn-xs' style='background-color: red !important;' disabled='true'>Hold</a>
