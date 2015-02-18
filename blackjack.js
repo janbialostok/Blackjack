@@ -1,4 +1,3 @@
-//var deck_of_cards = new Blackjack();
 function Blackjack(){
 	this.topCard = undefined;
 	this.bottomCard = undefined;
@@ -300,4 +299,5 @@ var newPlayer = function(){
 	var i = new Player();
 	return i;
 };
+
 module.exports = { Blackjack: newBlackjack, Card: newCard, Player: newPlayer, BJ: Blackjack }

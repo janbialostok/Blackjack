@@ -406,7 +406,9 @@ module.exports = function(app, io){
 							thisDeck.assignCard();
 							t.players = JSON.stringify(thisDeck);
 							t.save(function(err, t){
-								io.sockets.emit('player_deal', { cardSpot: thisDeck.cardSpot - 1, players: thisDeck.players });
+								console.log(thisDeck.cardSpot, thisDeck.firstDeal);
+								if (thisDeck.cardSpot == 1 && thisDeck.firstDeal == true) io.sockets.emit('end_of_hand', { thisDeck: thisDeck, message: "end_of_hand" });
+								else io.sockets.emit('player_deal', { cardSpot: thisDeck.cardSpot - 1, players: thisDeck.players });
 								renderDeck(err, thisDeck, t, res, true, user, req.session.passport.user);
 							});
 						});
@@ -415,7 +417,9 @@ module.exports = function(app, io){
 						thisDeck.assignCard();
 						t.players = JSON.stringify(thisDeck);
 						t.save(function(err, t){
-							io.sockets.emit('player_deal', { cardSpot: thisDeck.cardSpot - 1, players: thisDeck.players });
+							console.log(thisDeck.cardSpot, thisDeck.firstDeal);
+							if (thisDeck.cardSpot == 1 && thisDeck.firstDeal == true) io.sockets.emit('end_of_hand', { thisDeck: thisDeck, message: "end_of_hand" });
+							else io.sockets.emit('player_deal', { cardSpot: thisDeck.cardSpot - 1, players: thisDeck.players });
 							renderDeck(err, thisDeck, t, res, false);
 						});	
 					}
@@ -437,7 +441,8 @@ module.exports = function(app, io){
 						thisDeck.hold();
 						t.players = JSON.stringify(thisDeck);
 						t.save(function(err, t){
-							io.sockets.emit('player_hold', { thisDeck: thisDeck });
+							if (thisDeck.cardSpot == 1) io.sockets.emit('end_of_hand', { thisDeck: thisDeck, message: "End of hand" });
+							else io.sockets.emit('player_hold', { thisDeck: thisDeck });
 							renderDeck(err, thisDeck, t, res, true, user, req.session.passport.user);
 						});
 					});
@@ -446,7 +451,8 @@ module.exports = function(app, io){
 					thisDeck.hold();
 					t.players = JSON.stringify(thisDeck);
 					t.save(function(err, t){
-						io.sockets.emit('player_hold', { thisDeck: thisDeck });
+						if (thisDeck.cardSpot == 1) io.sockets.emit('end_of_hand', { thisDeck: thisDeck, message: "End of hand" });
+						else io.sockets.emit('player_hold', { thisDeck: thisDeck });
 						renderDeck(err, thisDeck, t, res, false);
 					});
 				}		
@@ -469,7 +475,7 @@ module.exports = function(app, io){
 							user.save(function(err, u){
 								t.players = JSON.stringify(thisDeck);
 								t.save(function(err, table){
-									io.sockets.emit('player_double');
+									io.sockets.emit('player_double', { cardSpot: playerSpot, players: thisDeck.players });
 									renderDeck(err, thisDeck, table, res, true, user, req.session.passport.user);
 								});
 							});
@@ -477,7 +483,7 @@ module.exports = function(app, io){
 						else{
 							t.players = JSON.stringify(thisDeck);
 							t.save(function(err, table){
-								io.sockets.emit('player_double');
+								io.sockets.emit('player_double', { cardSpot: playerSpot, players: thisDeck.players });
 								renderDeck(err, thisDeck, table, res, true, user, req.session.passport.user);
 							});
 						}
@@ -486,7 +492,7 @@ module.exports = function(app, io){
 				else{
 					t.players = JSON.stringify(thisDeck);
 					t.save(function(err, t){
-						io.sockets.emit('player_double');
+						io.sockets.emit('player_double', { cardSpot: playerSpot, players: thisDeck.players });
 						renderDeck(err, thisDeck, t, res, false);
 					});
 				}

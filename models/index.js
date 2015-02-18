@@ -1,6 +1,7 @@
 var aes = require("crypto-js/aes");
 var SHA256 = require("crypto-js/sha256");
 var crypto = require("crypto-js");
+var node_crypto = require("crypto");
 var mongoose = require('mongoose');
 mongoose.connect('mongodb://localhost/blackjack');
 var db = mongoose.connection;
@@ -22,6 +23,7 @@ var userSchema = new Schema({
 	bank: { type: Number, required: true },
 	username: { type: String, required: true, unique: true },
 	password: { type: String, required: true },
+	salt: { type: String },
 	passphrase: { type: String, required: true },
 	friends: { type: [String] },
 	avatar: { type: String }
@@ -31,32 +33,26 @@ tableSchema.virtual('url_route').get(function(){
 	return "/games/" + this._id + "/" + this.url;
 });
 
-tableSchema.methods.endGame = function(){
-
-}
-
 userSchema.methods.findFriends = function(){
 
 }
 
-userSchema.methods.encryptPassword = function(password, passphrase, formatter){
-	this.password = crypto.AES.encrypt(password, passphrase, formatter);
+userSchema.methods.encryptPassword = function(password){
+	this.password = node_crypto.pbkdf2Sync(password, this.salt, 100, 64).toString('base64');
 }
 
 userSchema.methods.createID = function(username){
 	this.UID = SHA256(username);
 }
 
-
 userSchema.methods.validatePassword = function(password){
-	var decrypted = crypto.AES.decrypt(this.password, this.passphrase, { format: JsonFormatter });
-	var decryptedStr = decrypted.toString(crypto.enc.Utf8);
-	if (decryptedStr == password){
-		console.log(decryptedStr + " " + password);
+	var decrypted = node_crypto.pbkdf2Sync(password, this.salt, 100, 64).toString('base64');
+	if (decrypted == this.password){
+		console.log(decrypted + " " + this.password);
 		return true;
 	}
 	else{
-		console.log(decryptedStr + " " + password);
+		console.log(decrypted + " " + this.password);
 		return false;
 	}
 }
@@ -103,7 +99,8 @@ var JsonFormatter = {
 
 
 userSchema.pre('save', function(next){
-	this.encryptPassword(this.password, this.passphrase, { format: JsonFormatter });
+	this.salt = node_crypto.randomBytes(16).toString('base64');
+	this.encryptPassword(this.password);
 	this.createID(this.username);
 	next();
 });

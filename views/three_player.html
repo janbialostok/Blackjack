@@ -13,10 +13,10 @@
           </div>
           <div class="col-lg-4" id='{{dealer.name}}'>
               <h4>{{dealer.name}}</h4>
-              <div id='{{dealer.name}}shand'>
+              <div class='hand' id='{{dealer.name}}sHand'>
                 {{dealer.handsValue}}
               </div>
-              <div class='width:50%;'>
+              <div class='cards' style='width:50%;'>
                 {% for card in dealer.dealer %}
                   <img src="{{card.file}}" style="height:40px;width:30px;">
                 {% endfor %}
@@ -30,7 +30,7 @@
               {% if cardSpot != 3 || betSpot <= players.length - 1 %}
                 <a href="/deal/{{table_code}}" class='btn btn-xs' style='background-color: red !important;' disabled='true'>Hit</a>
                 <a href="/hold/{{table_code}}" class='btn btn-xs' style='background-color: red !important;' disabled='true'>Hold</a>
-                <a href="/double_down/{{table_code}}" class='btn btn-xs' style='background-color: red !important;' disabled='true'>Double Down</a>
+                <a href="/double_down/{{table_code}}/third_player.player_id" class='btn btn-xs' style='background-color: red !important;' disabled='true'>Double Down</a>
               {% else %}
                 <a href="/deal/{{table_code}}" class='btn btn-xs' style='background-color: red !important;'>Hit</a>
                 <a href="/hold/{{table_code}}" class='btn btn-xs' style='background-color: red !important;'>Hold</a>
@@ -39,17 +39,17 @@
                 <a href="/leave/{{table_code}}/{{third_player.playerNum}}" class="btn btn-xs" style='background-color: red !important;'>Leave Table</a>
               <div style='width:50%;'>
                 <h4>{{third_player.name}}</h4>
-                <div id='{{third_player.name}}shand'>
+                <div class='hand' id='thirdPlayersHand'>
                   {{third_player.handsValue}}
                 </div>
-                <div id='{{third_player.name}}sbank'>
+                <div id='thirdPlayersBank'>
                   {{third_player.funds}}
                 </div>
-                <div id='{{third_player.name}}sbet'>
+                <div id='thirdPlayersBet'>
                   {{third_player.bet}}
                 </div>
               </div>
-              <div class='width:50%;'>
+              <div class='cards' style='width:50%;'>
               {% for card in third_player[third_player.playerNum] %}
                 <img src="{{card.file}}" style="height:40px;width:30px;">
               {% endfor %}
@@ -81,7 +81,7 @@
               {% if cardSpot != 1 || betSpot <= players.length - 1 %}
                 <a href="/deal/{{table_code}}" class='btn btn-xs' style='background-color: red !important;' disabled='true'>Hit</a>
                 <a href="/hold/{{table_code}}" class='btn btn-xs' style='background-color: red !important;' disabled='true'>Hold</a>
-                <a href="/double_down/{{table_code}}" class='btn btn-xs' style='background-color: red !important;' disabled='true'>Double Down</a>
+                <a href="/double_down/{{table_code}}/{{first_player.player_id}}" class='btn btn-xs' style='background-color: red !important;' disabled='true'>Double Down</a>
               {% else %}
                 <a href="/deal/{{table_code}}" class='btn btn-xs' style='background-color: red !important;'>Hit</a>
                 <a href="/hold/{{table_code}}" class='btn btn-xs' style='background-color: red !important;'>Hold</a>
@@ -90,17 +90,17 @@
                 <a href="/leave/{{table_code}}/{{first_player.playerNum}}" class="btn btn-xs" style='background-color: red !important;'>Leave Table</a>
               <div style='width:50%;'>
                 <h4>{{first_player.name}}</h4>
-                <div id='{{first_player.name}}shand'>
+                <div class='hand' id='firstPlayersHand'>
                   {{first_player.handsValue}}
                 </div>
-                <div id='{{first_player.name}}sbank'>
+                <div id='firstPlayersBank'>
                   {{first_player.funds}}
                 </div>
-                <div id='{{first_player.name}}sbet'>
+                <div id='firstPlayersBet'>
                   {{first_player.bet}}
                 </div>
               </div>
-              <div class='width:50%;'>
+              <div class='cards' style='width:50%;'>
               {% for card in first_player[first_player.playerNum] %}
                 <img src="{{card.file}}" style="height:40px;width:30px;">
               {% endfor %}
@@ -128,7 +128,7 @@
               {% if cardSpot != 2 || betSpot <= players.length - 1 %}
                 <a href="/deal/{{table_code}}" class='btn btn-xs' style='background-color: red !important;' disabled='true'>Hit</a>
                 <a href="/hold/{{table_code}}" class='btn btn-xs' style='background-color: red !important;' disabled='true'>Hold</a>
-                <a href="/double_down/{{table_code}}" class='btn btn-xs' style='background-color: red !important;' disabled='true'>Double Down</a>
+                <a href="/double_down/{{table_code}}/{{second_player.player_id}}" class='btn btn-xs' style='background-color: red !important;' disabled='true'>Double Down</a>
               {% else %}
                 <a href="/deal/{{table_code}}" class='btn btn-xs' style='background-color: red !important;'>Hit</a>
                 <a href="/hold/{{table_code}}" class='btn btn-xs' style='background-color: red !important;'>Hold</a>
@@ -137,17 +137,17 @@
                 <a href="/leave/{{table_code}}/{{second_player.playerNum}}" class="btn btn-xs" style='background-color: red !important;'>Leave Table</a>
               <div style='width:50%;'>
                 <h4>{{second_player.name}}</h4>
-                <div id='{{second_player.name}}shand'>
+                <div class='hand' id='secondPlayersHand'>
                   {{second_player.handsValue}}
                 </div>
-                <div id='{{second_player.name}}sbank'>
+                <div id='secondPlayersBank'>
                   {{second_player.funds}}
                 </div>
-                <div id='{{second_player.name}}sbet'>
+                <div id='secondPlayersBet'>
                   {{second_player.bet}}
                 </div>
               </div>
-              <div class='width:50%;'>
+              <div class='cards' style='width:50%;'>
               {% for card in second_player[second_player.playerNum] %}
                 <img src="{{card.file}}" style="height:40px;width:30px;">
               {% endfor %}
@@ -171,4 +171,282 @@
           </div>
         </div>
       </div>
+    {% endblock %}
+    {% block scripts %}
+      <script>
+        var socket = io.connect();
+        socket.on("player_left", function (data){
+          var $idFinder = $("#firstPlayerSpot");
+          if (data.player.playerNum == 2){
+              $idFinder = $("#secondPlayerSpot");
+          }
+          else if (data.player.playerNum == 3){
+            $idFinder = $("#thirdPlayerSpot");
+          }
+
+          if (data.player.playerNum == 1){
+            $idFinder.html("");
+            var secondPlayerContent = $("#secondPlayerSpot").html();
+            $idFinder.html(secondPlayerContent);
+            var thirdPlayerContent = $("#thirdPlayerSpot").html();
+            $("#secondPlayerSpot").html(thirdPlayerContent);
+            var inputs = $("#secondPlayerSpot input")[1];
+            inputs.value = "2";
+            inputs = $idFinder.find("input")[1];
+            inputs.value = "1";
+            $("#thirdPlayerSpot").html("");
+          }
+          else if (data.player.playerNum == 2){
+            $idFinder.html("");
+            var thirdPlayerContent = $("#thirdPlayerSpot").html();
+            $idFinder.html(thirdPlayerContent);
+            $("#thirdPlayerSpot").html("");
+            var inputs = $("#secondPlayerSpot input")[1];
+            inputs.value = "2";
+            $("#thirdPlayerSpot").html("");
+            var joinForm = $("<form style='form-inline' action='/bet' method='POST'></form>");
+            var tableCode = $("<input type='hidden' name='table_code' value='{{table_code}}'>");
+            var tableSpot = $("<input type='hidden' name='player' value='2'>");
+            joinForm.append(tableCode);
+            joinForm.append(tableSpot);
+            if (!data.session){
+              var label = $("<label for='name'>Enter Name</label>");
+              var nameInput = $("<input type='text' class='form-control' name='name'>");
+              joinForm.append(label);
+              joinForm.append(nameInput);
+            }
+            var joinButton = $("<button type='submit' class='btn btn-primary'>Join Table</button>");
+            joinForm.append(joinButton);
+            $("#thirdPlayerSpot").append(joinForm);
+          }
+          else{
+            $("#thirdPlayerSpot").html("");
+            var joinForm = $("<form style='form-inline' action='/bet' method='POST'></form>");
+            var tableCode = $("<input type='hidden' name='table_code' value='{{table_code}}'>");
+            var tableSpot = $("<input type='hidden' name='player' value='3'>");
+            joinForm.append(tableCode);
+            joinForm.append(tableSpot);
+            if (!data.session){
+              var label = $("<label for='name'>Enter Name</label>");
+              var nameInput = $("<input type='text' class='form-control' name='name'>");
+              joinForm.append(label);
+              joinForm.append(nameInput);
+            }
+            var joinButton = $("<button type='submit' class='btn btn-primary'>Join Table</button>");
+            joinForm.append(joinButton);
+            $("#thirdPlayerSpot").append(joinForm);
+          }
+        });
+        socket.on("player_bet", function (data){
+          console.log(data);
+          if (data.playerSpot == 1){
+            $("#firstPlayersBet").text(data.bet);
+            var bank = $("#firstPlayersBank").text();
+            bank -= $("#firstPlayersBet").text();
+            $("#firstPlayersBank").text(bank);
+            $("#firstPlayerSpot form button").attr("disabled", true);
+            $("#secondPlayerSpot form button").attr("disabled", false);
+          }
+          else if (data.playerSpot == 2){
+            $("#secondPlayersBet").text(data.bet);
+            var bank = $("#secondPlayersBank").text();
+            bank -= $("#secondPlayersBet").text();
+            $("#secondPlayersBank").text(bank);
+            $("#secondPlayerSpot form button").attr("disabled", true);
+            $("#thirdPlayerSpot form button").attr("disabled", false);
+          }
+          else if (data.playerSpot == 3){
+            $("#thirdPlayersBet").text(data.bet);
+            var bank = $("#thirdPlayersBank").text();
+            bank -= $("#thirdPlayersBet").text();
+            $("#thirdPlayersBank").text(bank);
+            $("#thirdPlayerSpot form button").attr("disabled", true);
+            var anchors = $("#firstPlayerSpot a");
+            for (var i = 0; i < anchors.length; i++){
+              $(anchors[i]).attr("disabled", false);
+            }
+          }
+        }); 
+        socket.on("player_deal", function (data){
+          console.log("Deal");
+          var $player;
+          data.players.forEach(function(player){
+            if (player.playerNum == 1){
+              $player = $("#firstPlayerSpot");
+            }
+            else if (player.playerNum == 2){
+              $player = $("#secondPlayerSpot");
+            }
+            else if (player.playerNum == 3){
+              $player = $("#thirdPlayerSpot");
+            }
+            else{
+              $player = $("#dealer");
+              player.playerNum = "dealer";
+            }
+            $player.find(".hand").text(player.handsValue);
+            $player.find(".cards").html("");
+            
+            player[player.playerNum].forEach(function(card){
+              var cardImg = $("<img src='" + card.file + "' style='height:40px;width:30px;'>");
+              $player.find(".cards").append(cardImg);
+            });
+          });
+          if ($("#firstPlayersHand").text() * 1 > 21){
+            var anchors = $("#firstPlayerSpot").find("a")
+            for (var i = 0; i < anchors.length; i++){
+              $(anchors[i]).attr("disabled", true);
+            }
+            anchors = $("#secondPlayerSpot").find("a")
+            for (var i = 0; i < anchors.length; i++){
+              $(anchors[i]).attr("disabled", false);
+            }
+          }
+          if ($("#secondPlayersHand").text() * 1 > 21){
+            var anchors = $("#secondPlayerSpot").find("a")
+            for (var i = 0; i < anchors.length; i++){
+              $(anchors[i]).attr("disabled", true);
+            }
+            anchors = $("#thirdPlayerSpot").find("a")
+            for (var i = 0; i < anchors.length; i++){
+              $(anchors[i]).attr("disabled", false);
+            }
+          }
+        });
+        socket.on("player_hold", function (data){
+          console.log(data);
+          if ((data.thisDeck.cardSpot - 1) == 1){
+            var anchors = $("#firstPlayerSpot a");
+            for (var i = 0; i < anchors.length; i++){
+              $(anchors[i]).attr("disabled", true);
+            }
+            anchors = $("#secondPlayerSpot a");
+            for (var i = 0; i < anchors.length; i++){
+              $(anchors[i]).attr("disabled", false);
+            }
+          }
+          else if ((data.thisDeck.cardSpot - 1) == 2){
+            var anchors = $("#secondPlayerSpot a");
+            for (var i = 0; i < anchors.length; i++){
+              $(anchors[i]).attr("disabled", true);
+            }
+            anchors = $("#thirdPlayerSpot a");
+            for (var i = 0; i < anchors.length; i++){
+              $(anchors[i]).attr("disabled", false);
+            }
+          }
+          else if ((data.thisDeck.cardSpot - 1) == 3){
+            var anchors = $("#sthirdPlayerSpot a");
+            for (var i = 0; i < anchors.length; i++){
+              $(anchors[i]).attr("disabled", true);
+            }
+          }
+        });
+        socket.on("player_double", function (data){
+          if (data.cardSpot == 1){
+            $("#firstPlayersBet").text(data.bet);
+            var bank = $("#firstPlayersBank").text();
+            bank -= $("#firstPlayersBet").text();
+            $("#firstPlayersBank").text(bank);
+            var anchors = $("#secondPlayerSpot a");
+            for (var i = 0; i < anchors.length; i++){
+              $(anchors[i]).attr("disabled", false);
+            }
+            anchors = $("#firstPlayerSpot a");
+            for (var i = 0; i < anchors.length; i++){
+              $(anchors[i]).attr("disabled", true);
+            }
+          }
+          else if (data.cardSpot == 2){
+            $("#secondPlayersBet").text(data.bet);
+            var bank = $("#secondPlayersBank").text();
+            bank -= $("#secondPlayersBet").text();
+            $("#secondPlayersBank").text(bank);
+            var anchors = $("#secondPlayerSpot a");
+            for (var i = 0; i < anchors.length; i++){
+              $(anchors[i]).attr("disabled", true);
+            }
+            anchors = $("#thirdPlayerSpot a");
+            for (var i = 0; i < anchors.length; i++){
+              $(anchors[i]).attr("disabled", false);
+            }
+          }
+          else if (data.cardSpot == 3){
+            $("#thirdPlayersBet").text(data.bet);
+            var bank = $("#thirdPlayersBank").text();
+            bank -= $("#thirdPlayersBet").text();
+            $("#thirdPlayersBank").text(bank);
+            var anchors = $("#thirdPlayerSpot a");
+            for (var i = 0; i < anchors.length; i++){
+              $(anchors[i]).attr("disabled", true);
+            }
+          }
+          data.players.forEach(function(player){
+            var $player;
+            if (player.playerNum == 1){
+              $player = $("#firstPlayerSpot");
+            }
+            else if (player.playerNum == 2){
+              $player = $("#secondPlayerSpot");
+            }
+            else if (player.playerNum == 3){
+              $player = $("#thirdPlayerSpot");
+            }
+            else{
+              $player = $("#dealer");
+              player.playerNum = "dealer";
+            }
+            $player.find(".hand").text(player.handsValue);
+            $player.find(".cards").html("");
+            
+            player[player.playerNum].forEach(function(card){
+              var cardImg = $("<img src='" + card.file + "' style='height:40px;width:30px;'>");
+              $player.find(".cards").append(cardImg);
+            });
+          });
+        });
+        socket.on("end_of_hand", function (data){
+          console.log(data.message);
+          var $player;
+          for (var i = 1; i < data.thisDeck.players.length; i++){
+            if (i == 1){
+              $player = "#firstPlayer";
+            }
+            else if (i == 2){
+              $player = "#secondPlayer";
+            }
+            else if (i == 3){
+              $player = "#thirdPlayer";
+            }
+            $($player + "sHand").text("0");
+            console.log($($player + "sBet").text());
+            $($player + "sBet").html("");
+            $($player + "sBet").text("0");
+            $($player + "Spot .cards").html("");
+            $($player + "sBank").text(data.thisDeck.players[i].funds);
+          }
+
+          $("#dealer .cards").html("");
+          $("#dealer .hand").text("0");
+          $("#firstPlayerSpot form button").attr("disabled", false);
+          var anchors = $("#firstPlayerSpot a");
+            for (var i = 0; i < anchors.length; i++){
+              if ($(anchors[i]).text() != "Leave Table"){
+                $(anchors[i]).attr("disabled", true);
+              }
+            }
+          anchors = $("#secondPlayerSpot a");
+            for (var i = 0; i < anchors.length; i++){
+              if ($(anchors[i]).text() != "Leave Table"){
+                $(anchors[i]).attr("disabled", true);
+              }
+            }
+          anchors = $("#thirdPlayerSpot a");
+            for (var i = 0; i < anchors.length; i++){
+              if ($(anchors[i]).text() != "Leave Table"){
+                $(anchors[i]).attr("disabled", true);
+              }
+            }
+        });
+      </script>
     {% endblock %}

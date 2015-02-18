@@ -51,7 +51,7 @@
               {% if cardSpot != 1 || betSpot <= players.length - 1 %}
                 <a href="/deal/{{table_code}}" class='btn btn-xs' style='background-color: red !important;' disabled='true'>Hit</a>
                 <a href="/hold/{{table_code}}" class='btn btn-xs' style='background-color: red !important;' disabled='true'>Hold</a>
-                <a href="/double_down/{{table_code}}" class='btn btn-xs' style='background-color: red !important;' disabled='true'>Double Down</a>
+                <a href="/double_down/{{table_code}}/{{first_player.player_id}}" class='btn btn-xs' style='background-color: red !important;' disabled='true'>Double Down</a>
               {% else %}
                 <a href="/deal/{{table_code}}" class='btn btn-xs' style='background-color: red !important;'>Hit</a>
                 <a href="/hold/{{table_code}}" class='btn btn-xs' style='background-color: red !important;'>Hold</a>
@@ -98,7 +98,7 @@
               {% if cardSpot != 2 || betSpot <= players.length - 1 %}
                 <a href="/deal/{{table_code}}" class='btn btn-xs' style='background-color: red !important;' disabled='true'>Hit</a>
                 <a href="/hold/{{table_code}}" class='btn btn-xs' style='background-color: red !important;' disabled='true'>Hold</a>
-                <a href="/double_down/{{table_code}}" class='btn btn-xs' style='background-color: red !important;' disabled='true'>Double Down</a>
+                <a href="/double_down/{{table_code}}/{{second_player.player_id}}" class='btn btn-xs' style='background-color: red !important;' disabled='true'>Double Down</a>
               {% else %}
                 <a href="/deal/{{table_code}}" class='btn btn-xs' style='background-color: red !important;'>Hit</a>
                 <a href="/hold/{{table_code}}" class='btn btn-xs' style='background-color: red !important;'>Hold</a>
@@ -243,8 +243,9 @@
           }
         }); 
         socket.on("player_deal", function (data){
+          console.log("Deal");
+          var $player;
           data.players.forEach(function(player){
-            var $player;
             if (player.playerNum == 1){
               $player = $("#firstPlayerSpot");
             }
@@ -262,8 +263,17 @@
               var cardImg = $("<img src='" + card.file + "' style='height:40px;width:30px;'>");
               $player.find(".cards").append(cardImg);
             });
-            console.log(data);
           });
+          if ($("#firstPlayersHand").text() * 1 > 21){
+            var anchors = $("#firstPlayerSpot").find("a")
+            for (var i = 0; i < anchors.length; i++){
+              $(anchors[i]).attr("disabled", true);
+            }
+            anchors = $("#secondPlayerSpot").find("a")
+            for (var i = 0; i < anchors.length; i++){
+              $(anchors[i]).attr("disabled", false);
+            }
+          }
         });
         socket.on("player_hold", function (data){
           console.log(data);
@@ -283,6 +293,86 @@
               $(anchors[i]).attr("disabled", true);
             }
           }
+        });
+        socket.on("player_double", function (data){
+          if (data.cardSpot == 1){
+            $("#firstPlayersBet").text(data.bet);
+            var bank = $("#firstPlayersBank").text();
+            bank -= $("#firstPlayersBet").text();
+            $("#firstPlayersBank").text(bank);
+            var anchors = $("#secondPlayerSpot a");
+            for (var i = 0; i < anchors.length; i++){
+              $(anchors[i]).attr("disabled", false);
+            }
+            anchors = $("#firstPlayerSpot a");
+            for (var i = 0; i < anchors.length; i++){
+              $(anchors[i]).attr("disabled", true);
+            }
+          }
+          else if (data.cardSpot == 2){
+            $("#secondPlayersBet").text(data.bet);
+            var bank = $("#secondPlayersBank").text();
+            bank -= $("#secondPlayersBet").text();
+            $("#secondPlayersBank").text(bank);
+            var anchors = $("#secondPlayerSpot a");
+            for (var i = 0; i < anchors.length; i++){
+              $(anchors[i]).attr("disabled", true);
+            }
+          }
+          data.players.forEach(function(player){
+            var $player;
+            if (player.playerNum == 1){
+              $player = $("#firstPlayerSpot");
+            }
+            else if (player.playerNum == 2){
+              $player = $("#secondPlayerSpot");
+            }
+            else{
+              $player = $("#dealer");
+              player.playerNum = "dealer";
+            }
+            $player.find(".hand").text(player.handsValue);
+            $player.find(".cards").html("");
+            
+            player[player.playerNum].forEach(function(card){
+              var cardImg = $("<img src='" + card.file + "' style='height:40px;width:30px;'>");
+              $player.find(".cards").append(cardImg);
+            });
+          });
+        });
+        socket.on("end_of_hand", function (data){
+          console.log(data.message);
+          var $player;
+          for (var i = 1; i < data.thisDeck.players.length; i++){
+            if (i == 1){
+              $player = "#firstPlayer";
+            }
+            else if (i == 2){
+              $player = "#secondPlayer";
+            }
+            $($player + "sHand").text("0");
+            console.log($($player + "sBet").text());
+            $($player + "sBet").html("");
+            $($player + "sBet").text("0");
+            $($player + "Spot .cards").html("");
+            $($player + "sBank").text(data.thisDeck.players[i].funds);
+          }
+
+          $("#dealer .cards").html("");
+          $("#dealer .hand").text("0");
+          $("#firstPlayerSpot form button").attr("disabled", false);
+          var anchors = $("#firstPlayerSpot a");
+            for (var i = 0; i < anchors.length; i++){
+              if ($(anchors[i]).text() != "Leave Table"){
+                $(anchors[i]).attr("disabled", true);
+              }
+            }
+          anchors = $("#secondPlayerSpot a");
+            for (var i = 0; i < anchors.length; i++){
+              if ($(anchors[i]).text() != "Leave Table"){
+                $(anchors[i]).attr("disabled", true);
+              }
+            }
         });
       </script>
     {% endblock %}
