@@ -13,12 +13,9 @@
           </div>
           <div class="col-lg-4" id='{{dealer.name}}'>
               <h4>{{dealer.name}}</h4>
-              <div class='hand' id='{{dealer.name}}sHand'>
-                {{dealer.handsValue}}
-              </div>
               <div class='cards' style='width:50%;'>
                 {% for card in dealer.dealer %}
-                  <img src="{{card.file}}" style="height:40px;width:30px;">
+                  <img src="{{card.file}}" style="height:60px;width:45px;">
                 {% endfor %}
               </div>
           </div>

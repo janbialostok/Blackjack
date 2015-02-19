@@ -23,6 +23,7 @@ module.exports = function(app, io){
 			password: req.body.new_password,
 			passphrase: req.body.new_passphrase
 		});
+		//new_user.password = new_user.encryptPassword(new_user.password);
 		new_user.save(function(err, user){
 			req.login(user, function(err){
 				if (!err){
@@ -207,44 +208,59 @@ module.exports = function(app, io){
 		}
 	});
 
+	var saveAndLeaveTable = function(req, res, thisDeck){
+		var playerStore = thisDeck.players[req.params.number * 1];
+		if (thisDeck.players[req.params.number * 1].playerNum < (thisDeck.playerTotal - 1)){
+			for (var i = req.params.number * 1; i < (thisDeck.playerTotal - 1); i++){
+				for (var key in thisDeck.players[i]){
+					if (thisDeck.players[i].hasOwnProperty(key)){
+						if (!Number(key)){
+							thisDeck.players[i][key] = thisDeck.players[i + 1][key];
+						}
+						else{
+							var nextKey = Number(key) + 1;
+							thisDeck.players[i][key] = thisDeck.players[i + 1][nextKey.toString()];
+						}
+					}
+				}
+				thisDeck.players[i].playerNum--;
+			}
+		}
+		thisDeck.players.pop();
+		thisDeck.playerTotal--;
+		if (thisDeck.playerTotal == 1){
+			Table.remove({ _id: req.params.table_code }, function(err){
+				res.redirect('/');
+			});
+		}
+		else{
+			table.players = JSON.stringify(thisDeck);
+			table.save(function(err, t){
+				var session = req.session.passport.user||undefined;
+				io.sockets.emit('player_left', { player: playerStore, 
+					session: session, 
+					table_code: req.params.table_code 
+				});
+				res.redirect('/');
+			});
+		}
+	}
+
 	app.get('/leave/:table_code/:number', function(req, res){
 		Table.findOne({ _id: req.params.table_code }, function(err, table){
 			var thisDeck = JSON.parse(table.players);
-			var playerStore = thisDeck.players[req.params.number * 1];
-			if (thisDeck.players[req.params.number * 1].playerNum < (thisDeck.playerTotal - 1)){
-				for (var i = req.params.number * 1; i < (thisDeck.playerTotal - 1); i++){
-					for (var key in thisDeck.players[i]){
-						if (thisDeck.players[i].hasOwnProperty(key)){
-							if (!Number(key)){
-								thisDeck.players[i][key] = thisDeck.players[i + 1][key];
-							}
-							else{
-								var nextKey = Number(key) + 1;
-								thisDeck.players[i][key] = thisDeck.players[i + 1][nextKey.toString()];
-							}
-						}
-					}
-					thisDeck.players[i].playerNum--;
-				}
-			}
-			thisDeck.players.pop();
-			thisDeck.playerTotal--;
-			if (thisDeck.playerTotal == 1){
-				Table.remove({ _id: req.params.table_code }, function(err){
-					res.redirect('/');
-				});
-			}
-			else{
-				table.players = JSON.stringify(thisDeck);
-				table.save(function(err, t){
-					var session = req.session.passport.user||undefined;
-					io.sockets.emit('player_left', { player: playerStore, 
-						session: session, 
-						table_code: req.params.table_code 
+			var UID = thisDeck.players[req.params.number * 1].player_id;
+			User.findOne({ UID: UID }, function(err, user){
+				if (user){
+					user.bank = thisDeck.players[req.params.number * 1].funds
+					user.save(function(err, u){
+						saveAndLeaveTable(req, res, thisDeck);
 					});
-					res.redirect('/');
-				});
-			}
+				}
+				else{
+					saveAndLeaveTable(req, res, thisDeck);
+				}
+			});
 		});
 	});
 
@@ -510,6 +526,64 @@ module.exports = function(app, io){
 		User.remove({}).exec(function(err){
 			res.redirect('/');
 		});
+	});
+
+	app.get('/sign_out/:table_code', function(req, res){
+		Table.findOne({ _id: req.params.table_code }, function(err, table){
+			var thisDeck = parseAndSetProto(table.players);
+			var playerSpot;
+			thisDeck.players.forEach(function(player){
+				if (player.player_id == req.session.passport.user){
+					playerSpot = player.playerNum;
+					User.findOne({ UID: req.session.passport.user }, function(err, user){
+						user.bank = thisDeck.players[playerSpot].funds;
+						user.save(function(err){
+							var playerStore = thisDeck.players[playerSpot];
+							console.log(user.password);
+							if (playerStore.playerNum < (thisDeck.playerTotal - 1)){
+								for (var i = playerSpot; i < (thisDeck.playerTotal - 1); i++){
+									for (var key in thisDeck.players[i]){
+										if (thisDeck.players[i].hasOwnProperty(key)){
+											if (!Number(key)){
+												thisDeck.players[i][key] = thisDeck.players[i + 1][key];
+											}
+											else{
+												var nextKey = Number(key) + 1;
+												thisDeck.players[i][key] = thisDeck.players[i + 1][nextKey.toString()];
+											}
+										}
+									}
+									thisDeck.players[i].playerNum--;
+								}
+							}
+							thisDeck.players.pop();
+							thisDeck.playerTotal--;
+							if (thisDeck.playerTotal == 1){
+								Table.remove({ _id: req.params.table_code }, function(err){
+								});
+							}
+							else{
+								table.players = JSON.stringify(thisDeck);
+								table.save(function(err, t){
+									var session = req.session.passport.user||undefined;
+									io.sockets.emit('player_left', { player: playerStore, 
+										session: session, 
+										table_code: req.params.table_code 
+									});
+								});
+							}
+						});
+					});
+				}
+			});
+			req.logout();
+			res.redirect('/');
+		});
+	});
+
+	app.get('/sign_out', function(req, res){
+		req.logout();
+		res.redirect('/');
 	});
 
 	passport.use(new LocalStrategy(

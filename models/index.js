@@ -22,7 +22,7 @@ var userSchema = new Schema({
 	name: { type: String, required: true },
 	bank: { type: Number, required: true },
 	username: { type: String, required: true, unique: true },
-	password: { type: String, required: true },
+	hashPassword: { type: String, required: true },
 	salt: { type: String },
 	passphrase: { type: String, required: true },
 	friends: { type: [String] },
@@ -33,26 +33,19 @@ tableSchema.virtual('url_route').get(function(){
 	return "/games/" + this._id + "/" + this.url;
 });
 
-userSchema.methods.findFriends = function(){
-
-}
 
 userSchema.methods.encryptPassword = function(password){
 	this.password = node_crypto.pbkdf2Sync(password, this.salt, 100, 64).toString('base64');
 }
 
-userSchema.methods.createID = function(username){
-	this.UID = SHA256(username);
-}
-
 userSchema.methods.validatePassword = function(password){
 	var decrypted = node_crypto.pbkdf2Sync(password, this.salt, 100, 64).toString('base64');
-	if (decrypted == this.password){
-		console.log(decrypted + " " + this.password);
+	if (decrypted == this.hashPassword){
+		console.log(decrypted + " " + this.hashPassword);
 		return true;
 	}
 	else{
-		console.log(decrypted + " " + this.password);
+		console.log(decrypted + " " + this.hashPassword);
 		return false;
 	}
 }
@@ -97,19 +90,21 @@ var JsonFormatter = {
 	}
 }
 
-
-userSchema.pre('save', function(next){
-	this.salt = node_crypto.randomBytes(16).toString('base64');
-	this.encryptPassword(this.password);
-	this.createID(this.username);
-	next();
-});
-
 tableSchema.pre('save', function(next){
 	console.log("__SAVED__");
 	next();
 });
 
+
+userSchema.pre('save', function(next){
+	this.UID = node_crypto.pbkdf2Sync(this.username, '', 100, 64).toString('base64');
+	next();
+});
+
+userSchema.virtual('password').set(function(password){
+	this.salt = node_crypto.randomBytes(16).toString('base64');
+	this.hashPassword = node_crypto.pbkdf2Sync(password, this.salt, 100, 64).toString('base64');
+});
 
 Table = mongoose.model('Table', tableSchema);
 User = mongoose.model('User', userSchema);

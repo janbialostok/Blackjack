@@ -144,7 +144,7 @@ Blackjack.prototype.findNextPlayer = function(currentPlayer){
 				while (this.players[0].handsValue < 17){
 					this.assignCard();
 				}
-				this.endHand();
+				this.endHand(); 
 			}
 		else{
 			this.cardSpot++;
@@ -155,6 +155,40 @@ Blackjack.prototype.findNextPlayer = function(currentPlayer){
 }
 
 Blackjack.prototype.endHand = function(){
+	// var self = this;
+	// setTimeout(function(){
+	// 	console.log(self);
+	// 	for (var i = 1; i < self.players.length; i++){
+ //        if (self.players[i].handsValue > self.players[0].handsValue && self.players[i].handsValue <= 21 || (self.players[0].handsValue > 21 && self.players[i].handsValue <= 21)){
+ //            self.players[i].funds += Number(self.players[i].bet * 2);
+ //        }
+ //        else if (self.players[i].handsValue == self.players[0].handsValue && self.players[i].handsValue <= 21){
+ //            self.players[i].funds += Number(self.players[i].bet);
+ //        }
+ //        else{
+ //            if (self.players[i].funds <= 0){
+ //                console.log(self.players[i].name + " has played his/her last hand");
+ //            }
+ //        }
+ //        self.players[i][i] = [];
+ //        self.players[i].bet = 0;
+ //        self.players[i].hasHold = false;
+ //        self.players[i].handsValue = 0;
+	//     }
+	//     self.players[0]["dealer"] = [];
+	//    	self.players[0].handsValue = 0;
+	//     self.firstDeal = true;
+	//     self.betSpot = 1;
+	//     self.cardSpot = 1;
+	//     if (self.totalCards < (self.players.length * 4)){
+	//         self.topCard = undefined;
+	//         self.bottomCard = undefined;
+	//         self.totalCards = 0;
+	//         self.shuffle();
+	//     }
+	//     console.log(self);
+	//     console.log("__TEST___")
+	// }, 3000);
     for (var i = 1; i < this.players.length; i++){
         if (this.players[i].handsValue > this.players[0].handsValue && this.players[i].handsValue <= 21 || (this.players[0].handsValue > 21 && this.players[i].handsValue <= 21)){
             this.players[i].funds += Number(this.players[i].bet * 2);
@@ -192,6 +226,7 @@ Blackjack.prototype.assignCard = function(){
 		    if (i == playerCount){
 		        var x = "dealer";
 		        this.players[0][x].push(this.dealCard());
+		        this.players[0][x][0].file = '/images/back_face_vert.png';
 		    }
 		    else{
 		        this.players[i][i].push(this.dealCard());    
@@ -204,6 +239,7 @@ Blackjack.prototype.assignCard = function(){
 		        this.players[0][z].push(this.dealCard());
 		        this.tallyHandValue("dealer");
 		        if (this.players[0].handsValue == 21){
+		            console.log("dealer blackjack");
 		            this.endHand();
 		        }
 		    }
